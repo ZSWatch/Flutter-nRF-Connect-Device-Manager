@@ -275,6 +275,148 @@ struct OnDownloadCompletedEvent: DownloadCallbackEvent {
   }
 }
 
+/// Generic class that matches all possible events from the native UploadCallback interface.
+///
+/// Generated class from Pigeon that represents data sent in messages.
+/// This protocol should not be extended by any user class outside of the generated file.
+protocol UploadCallbackEvent {
+
+}
+
+/// Generated class from Pigeon that represents data sent in messages.
+struct OnUploadProgressChangedEvent: UploadCallbackEvent {
+  var current: Int64
+  var total: Int64
+  var timestamp: Int64
+  var remoteId: String
+  var path: String
+
+
+  // swift-format-ignore: AlwaysUseLowerCamelCase
+  static func fromList(_ pigeonVar_list: [Any?]) -> OnUploadProgressChangedEvent? {
+    let current = pigeonVar_list[0] as! Int64
+    let total = pigeonVar_list[1] as! Int64
+    let timestamp = pigeonVar_list[2] as! Int64
+    let remoteId = pigeonVar_list[3] as! String
+    let path = pigeonVar_list[4] as! String
+
+    return OnUploadProgressChangedEvent(
+      current: current,
+      total: total,
+      timestamp: timestamp,
+      remoteId: remoteId,
+      path: path
+    )
+  }
+  func toList() -> [Any?] {
+    return [
+      current,
+      total,
+      timestamp,
+      remoteId,
+      path,
+    ]
+  }
+  static func == (lhs: OnUploadProgressChangedEvent, rhs: OnUploadProgressChangedEvent) -> Bool {
+    return deepEqualsMessages(lhs.toList(), rhs.toList())  }
+  func hash(into hasher: inout Hasher) {
+    deepHashMessages(value: toList(), hasher: &hasher)
+  }
+}
+
+/// Generated class from Pigeon that represents data sent in messages.
+struct OnUploadFailedEvent: UploadCallbackEvent {
+  var cause: String? = nil
+  var remoteId: String
+  var path: String
+
+
+  // swift-format-ignore: AlwaysUseLowerCamelCase
+  static func fromList(_ pigeonVar_list: [Any?]) -> OnUploadFailedEvent? {
+    let cause: String? = nilOrValue(pigeonVar_list[0])
+    let remoteId = pigeonVar_list[1] as! String
+    let path = pigeonVar_list[2] as! String
+
+    return OnUploadFailedEvent(
+      cause: cause,
+      remoteId: remoteId,
+      path: path
+    )
+  }
+  func toList() -> [Any?] {
+    return [
+      cause,
+      remoteId,
+      path,
+    ]
+  }
+  static func == (lhs: OnUploadFailedEvent, rhs: OnUploadFailedEvent) -> Bool {
+    return deepEqualsMessages(lhs.toList(), rhs.toList())  }
+  func hash(into hasher: inout Hasher) {
+    deepHashMessages(value: toList(), hasher: &hasher)
+  }
+}
+
+/// Generated class from Pigeon that represents data sent in messages.
+struct OnUploadCancelledEvent: UploadCallbackEvent {
+  var remoteId: String
+  /// Needed to track the event source coming through a single stream.
+  var path: String
+
+
+  // swift-format-ignore: AlwaysUseLowerCamelCase
+  static func fromList(_ pigeonVar_list: [Any?]) -> OnUploadCancelledEvent? {
+    let remoteId = pigeonVar_list[0] as! String
+    let path = pigeonVar_list[1] as! String
+
+    return OnUploadCancelledEvent(
+      remoteId: remoteId,
+      path: path
+    )
+  }
+  func toList() -> [Any?] {
+    return [
+      remoteId,
+      path,
+    ]
+  }
+  static func == (lhs: OnUploadCancelledEvent, rhs: OnUploadCancelledEvent) -> Bool {
+    return deepEqualsMessages(lhs.toList(), rhs.toList())  }
+  func hash(into hasher: inout Hasher) {
+    deepHashMessages(value: toList(), hasher: &hasher)
+  }
+}
+
+/// Generated class from Pigeon that represents data sent in messages.
+struct OnUploadCompletedEvent: UploadCallbackEvent {
+  var remoteId: String
+  /// Needed to track the event source coming through a single stream.
+  var path: String
+
+
+  // swift-format-ignore: AlwaysUseLowerCamelCase
+  static func fromList(_ pigeonVar_list: [Any?]) -> OnUploadCompletedEvent? {
+    let remoteId = pigeonVar_list[0] as! String
+    let path = pigeonVar_list[1] as! String
+
+    return OnUploadCompletedEvent(
+      remoteId: remoteId,
+      path: path
+    )
+  }
+  func toList() -> [Any?] {
+    return [
+      remoteId,
+      path,
+    ]
+  }
+  static func == (lhs: OnUploadCompletedEvent, rhs: OnUploadCompletedEvent) -> Bool {
+    return deepEqualsMessages(lhs.toList(), rhs.toList())  }
+  func hash(into hasher: inout Hasher) {
+    deepHashMessages(value: toList(), hasher: &hasher)
+  }
+}
+
 private class MessagesPigeonCodecReader: FlutterStandardReader {
   override func readValue(ofType type: UInt8) -> Any? {
     switch type {
@@ -286,6 +428,14 @@ private class MessagesPigeonCodecReader: FlutterStandardReader {
       return OnDownloadCancelledEvent.fromList(self.readValue() as! [Any?])
     case 132:
       return OnDownloadCompletedEvent.fromList(self.readValue() as! [Any?])
+    case 133:
+      return OnUploadProgressChangedEvent.fromList(self.readValue() as! [Any?])
+    case 134:
+      return OnUploadFailedEvent.fromList(self.readValue() as! [Any?])
+    case 135:
+      return OnUploadCancelledEvent.fromList(self.readValue() as! [Any?])
+    case 136:
+      return OnUploadCompletedEvent.fromList(self.readValue() as! [Any?])
     default:
       return super.readValue(ofType: type)
     }
@@ -305,6 +455,18 @@ private class MessagesPigeonCodecWriter: FlutterStandardWriter {
       super.writeValue(value.toList())
     } else if let value = value as? OnDownloadCompletedEvent {
       super.writeByte(132)
+      super.writeValue(value.toList())
+    } else if let value = value as? OnUploadProgressChangedEvent {
+      super.writeByte(133)
+      super.writeValue(value.toList())
+    } else if let value = value as? OnUploadFailedEvent {
+      super.writeByte(134)
+      super.writeValue(value.toList())
+    } else if let value = value as? OnUploadCancelledEvent {
+      super.writeByte(135)
+      super.writeValue(value.toList())
+    } else if let value = value as? OnUploadCompletedEvent {
+      super.writeByte(136)
       super.writeValue(value.toList())
     } else {
       super.writeValue(value)
@@ -393,17 +555,38 @@ class GetFileDownloadEventsStreamHandler: PigeonEventChannelWrapper<DownloadCall
   }
 }
       
+class GetFileUploadEventsStreamHandler: PigeonEventChannelWrapper<UploadCallbackEvent> {
+  static func register(with messenger: FlutterBinaryMessenger,
+                      instanceName: String = "",
+                      streamHandler: GetFileUploadEventsStreamHandler) {
+    var channelName = "dev.flutter.pigeon.mcumgr_flutter.FsManagerEvents.getFileUploadEvents"
+    if !instanceName.isEmpty {
+      channelName += ".\(instanceName)"
+    }
+    let internalStreamHandler = PigeonStreamHandler<UploadCallbackEvent>(wrapper: streamHandler)
+    let channel = FlutterEventChannel(name: channelName, binaryMessenger: messenger, codec: messagesPigeonMethodCodec)
+    channel.setStreamHandler(internalStreamHandler)
+  }
+}
+      
 /// Generated protocol from Pigeon that represents a handler of messages from Flutter.
 protocol FsManagerApi {
   /// Starts the download of a single file with a specific device.
   /// Additional calls to a device that has an ongoing download causes a [PlatformException]
   /// to be thrown.
   func download(remoteId: String, path: String) throws
-  /// Pause an ongoing download
+  /// Starts the upload of a file to the device.
+  /// [remoteId]: The device identifier.
+  /// [path]: The absolute path on the device where the file will be written.
+  /// [data]: The file data to upload.
+  /// Additional calls to a device that has an ongoing transfer causes a [PlatformException]
+  /// to be thrown.
+  func upload(remoteId: String, path: String, data: FlutterStandardTypedData) throws
+  /// Pause an ongoing transfer
   func pauseTransfer(remoteId: String) throws
-  /// Resume an ongoing download
+  /// Resume an ongoing transfer
   func continueTransfer(remoteId: String) throws
-  /// Cancel an ongoing download
+  /// Cancel an ongoing transfer
   func cancelTransfer(remoteId: String) throws
   func status(remoteId: String, path: String, completion: @escaping (Result<Int64, Error>) -> Void)
   /// Kill the FsManager instance on the native platform.
@@ -435,7 +618,30 @@ class FsManagerApiSetup {
     } else {
       downloadChannel.setMessageHandler(nil)
     }
-    /// Pause an ongoing download
+    /// Starts the upload of a file to the device.
+    /// [remoteId]: The device identifier.
+    /// [path]: The absolute path on the device where the file will be written.
+    /// [data]: The file data to upload.
+    /// Additional calls to a device that has an ongoing transfer causes a [PlatformException]
+    /// to be thrown.
+    let uploadChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.mcumgr_flutter.FsManagerApi.upload\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      uploadChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let remoteIdArg = args[0] as! String
+        let pathArg = args[1] as! String
+        let dataArg = args[2] as! FlutterStandardTypedData
+        do {
+          try api.upload(remoteId: remoteIdArg, path: pathArg, data: dataArg)
+          reply(wrapResult(nil))
+        } catch {
+          reply(wrapError(error))
+        }
+      }
+    } else {
+      uploadChannel.setMessageHandler(nil)
+    }
+    /// Pause an ongoing transfer
     let pauseTransferChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.mcumgr_flutter.FsManagerApi.pauseTransfer\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
     if let api = api {
       pauseTransferChannel.setMessageHandler { message, reply in
@@ -451,7 +657,7 @@ class FsManagerApiSetup {
     } else {
       pauseTransferChannel.setMessageHandler(nil)
     }
-    /// Resume an ongoing download
+    /// Resume an ongoing transfer
     let continueTransferChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.mcumgr_flutter.FsManagerApi.continueTransfer\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
     if let api = api {
       continueTransferChannel.setMessageHandler { message, reply in
@@ -467,7 +673,7 @@ class FsManagerApiSetup {
     } else {
       continueTransferChannel.setMessageHandler(nil)
     }
-    /// Cancel an ongoing download
+    /// Cancel an ongoing transfer
     let cancelTransferChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.mcumgr_flutter.FsManagerApi.cancelTransfer\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
     if let api = api {
       cancelTransferChannel.setMessageHandler { message, reply in

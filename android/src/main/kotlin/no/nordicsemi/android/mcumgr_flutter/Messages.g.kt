@@ -226,6 +226,151 @@ data class OnDownloadCompletedEvent (
 
   override fun hashCode(): Int = toList().hashCode()
 }
+
+/**
+ * Generic class that matches all possible events from the native UploadCallback interface.
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ * This class should not be extended by any user class outside of the generated file.
+ */
+sealed class UploadCallbackEvent 
+/** Generated class from Pigeon that represents data sent in messages. */
+data class OnUploadProgressChangedEvent (
+  val current: Long,
+  val total: Long,
+  val timestamp: Long,
+  val remoteId: String,
+  val path: String
+) : UploadCallbackEvent()
+ {
+  companion object {
+    fun fromList(pigeonVar_list: List<Any?>): OnUploadProgressChangedEvent {
+      val current = pigeonVar_list[0] as Long
+      val total = pigeonVar_list[1] as Long
+      val timestamp = pigeonVar_list[2] as Long
+      val remoteId = pigeonVar_list[3] as String
+      val path = pigeonVar_list[4] as String
+      return OnUploadProgressChangedEvent(current, total, timestamp, remoteId, path)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      current,
+      total,
+      timestamp,
+      remoteId,
+      path,
+    )
+  }
+  override fun equals(other: Any?): Boolean {
+    if (other !is OnUploadProgressChangedEvent) {
+      return false
+    }
+    if (this === other) {
+      return true
+    }
+    return MessagesPigeonUtils.deepEquals(toList(), other.toList())  }
+
+  override fun hashCode(): Int = toList().hashCode()
+}
+
+/** Generated class from Pigeon that represents data sent in messages. */
+data class OnUploadFailedEvent (
+  val cause: String? = null,
+  val remoteId: String,
+  val path: String
+) : UploadCallbackEvent()
+ {
+  companion object {
+    fun fromList(pigeonVar_list: List<Any?>): OnUploadFailedEvent {
+      val cause = pigeonVar_list[0] as String?
+      val remoteId = pigeonVar_list[1] as String
+      val path = pigeonVar_list[2] as String
+      return OnUploadFailedEvent(cause, remoteId, path)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      cause,
+      remoteId,
+      path,
+    )
+  }
+  override fun equals(other: Any?): Boolean {
+    if (other !is OnUploadFailedEvent) {
+      return false
+    }
+    if (this === other) {
+      return true
+    }
+    return MessagesPigeonUtils.deepEquals(toList(), other.toList())  }
+
+  override fun hashCode(): Int = toList().hashCode()
+}
+
+/** Generated class from Pigeon that represents data sent in messages. */
+data class OnUploadCancelledEvent (
+  val remoteId: String,
+  /** Needed to track the event source coming through a single stream. */
+  val path: String
+) : UploadCallbackEvent()
+ {
+  companion object {
+    fun fromList(pigeonVar_list: List<Any?>): OnUploadCancelledEvent {
+      val remoteId = pigeonVar_list[0] as String
+      val path = pigeonVar_list[1] as String
+      return OnUploadCancelledEvent(remoteId, path)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      remoteId,
+      path,
+    )
+  }
+  override fun equals(other: Any?): Boolean {
+    if (other !is OnUploadCancelledEvent) {
+      return false
+    }
+    if (this === other) {
+      return true
+    }
+    return MessagesPigeonUtils.deepEquals(toList(), other.toList())  }
+
+  override fun hashCode(): Int = toList().hashCode()
+}
+
+/** Generated class from Pigeon that represents data sent in messages. */
+data class OnUploadCompletedEvent (
+  val remoteId: String,
+  /** Needed to track the event source coming through a single stream. */
+  val path: String
+) : UploadCallbackEvent()
+ {
+  companion object {
+    fun fromList(pigeonVar_list: List<Any?>): OnUploadCompletedEvent {
+      val remoteId = pigeonVar_list[0] as String
+      val path = pigeonVar_list[1] as String
+      return OnUploadCompletedEvent(remoteId, path)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      remoteId,
+      path,
+    )
+  }
+  override fun equals(other: Any?): Boolean {
+    if (other !is OnUploadCompletedEvent) {
+      return false
+    }
+    if (this === other) {
+      return true
+    }
+    return MessagesPigeonUtils.deepEquals(toList(), other.toList())  }
+
+  override fun hashCode(): Int = toList().hashCode()
+}
 private open class MessagesPigeonCodec : StandardMessageCodec() {
   override fun readValueOfType(type: Byte, buffer: ByteBuffer): Any? {
     return when (type) {
@@ -249,6 +394,26 @@ private open class MessagesPigeonCodec : StandardMessageCodec() {
           OnDownloadCompletedEvent.fromList(it)
         }
       }
+      133.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          OnUploadProgressChangedEvent.fromList(it)
+        }
+      }
+      134.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          OnUploadFailedEvent.fromList(it)
+        }
+      }
+      135.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          OnUploadCancelledEvent.fromList(it)
+        }
+      }
+      136.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          OnUploadCompletedEvent.fromList(it)
+        }
+      }
       else -> super.readValueOfType(type, buffer)
     }
   }
@@ -268,6 +433,22 @@ private open class MessagesPigeonCodec : StandardMessageCodec() {
       }
       is OnDownloadCompletedEvent -> {
         stream.write(132)
+        writeValue(stream, value.toList())
+      }
+      is OnUploadProgressChangedEvent -> {
+        stream.write(133)
+        writeValue(stream, value.toList())
+      }
+      is OnUploadFailedEvent -> {
+        stream.write(134)
+        writeValue(stream, value.toList())
+      }
+      is OnUploadCancelledEvent -> {
+        stream.write(135)
+        writeValue(stream, value.toList())
+      }
+      is OnUploadCompletedEvent -> {
+        stream.write(136)
         writeValue(stream, value.toList())
       }
       else -> super.writeValue(stream, value)
@@ -328,6 +509,19 @@ abstract class GetFileDownloadEventsStreamHandler : MessagesPigeonEventChannelWr
   }
 }
       
+abstract class GetFileUploadEventsStreamHandler : MessagesPigeonEventChannelWrapper<UploadCallbackEvent> {
+  companion object {
+    fun register(messenger: BinaryMessenger, streamHandler: GetFileUploadEventsStreamHandler, instanceName: String = "") {
+      var channelName: String = "dev.flutter.pigeon.mcumgr_flutter.FsManagerEvents.getFileUploadEvents"
+      if (instanceName.isNotEmpty()) {
+        channelName += ".$instanceName"
+      }
+      val internalStreamHandler = MessagesPigeonStreamHandler<UploadCallbackEvent>(streamHandler)
+      EventChannel(messenger, channelName, MessagesPigeonMethodCodec).setStreamHandler(internalStreamHandler)
+    }
+  }
+}
+      
 /** Generated interface from Pigeon that represents a handler of messages from Flutter. */
 interface FsManagerApi {
   /**
@@ -336,11 +530,20 @@ interface FsManagerApi {
    * to be thrown.
    */
   fun download(remoteId: String, path: String)
-  /** Pause an ongoing download */
+  /**
+   * Starts the upload of a file to the device.
+   * [remoteId]: The device identifier.
+   * [path]: The absolute path on the device where the file will be written.
+   * [data]: The file data to upload.
+   * Additional calls to a device that has an ongoing transfer causes a [PlatformException]
+   * to be thrown.
+   */
+  fun upload(remoteId: String, path: String, data: ByteArray)
+  /** Pause an ongoing transfer */
   fun pauseTransfer(remoteId: String)
-  /** Resume an ongoing download */
+  /** Resume an ongoing transfer */
   fun continueTransfer(remoteId: String)
-  /** Cancel an ongoing download */
+  /** Cancel an ongoing transfer */
   fun cancelTransfer(remoteId: String)
   fun status(remoteId: String, path: String, callback: (Result<Long>) -> Unit)
   /** Kill the FsManager instance on the native platform. */
@@ -364,6 +567,26 @@ interface FsManagerApi {
             val pathArg = args[1] as String
             val wrapped: List<Any?> = try {
               api.download(remoteIdArg, pathArg)
+              listOf(null)
+            } catch (exception: Throwable) {
+              MessagesPigeonUtils.wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.mcumgr_flutter.FsManagerApi.upload$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val remoteIdArg = args[0] as String
+            val pathArg = args[1] as String
+            val dataArg = args[2] as ByteArray
+            val wrapped: List<Any?> = try {
+              api.upload(remoteIdArg, pathArg, dataArg)
               listOf(null)
             } catch (exception: Throwable) {
               MessagesPigeonUtils.wrapError(exception)

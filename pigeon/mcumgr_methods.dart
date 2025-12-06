@@ -48,10 +48,48 @@ class OnDownloadCompletedEvent extends DownloadCallbackEvent {
   OnDownloadCompletedEvent(this.bytes, {required this.remoteId, required this.path});
 }
 
+/// Generic class that matches all possible events from the native UploadCallback interface.
+sealed class UploadCallbackEvent {}
+
+class OnUploadProgressChangedEvent extends UploadCallbackEvent {
+  final int current;
+  final int total;
+  final int timestamp;
+  final String remoteId;
+  final String path;
+  OnUploadProgressChangedEvent({required this.current, required this.total, required this.timestamp, required this.remoteId, required this.path});
+}
+
+class OnUploadFailedEvent extends UploadCallbackEvent {
+  final String? cause;
+  final String remoteId;
+  final String path;
+  OnUploadFailedEvent({required this.cause, required this.remoteId, required this.path});
+}
+
+class OnUploadCancelledEvent extends UploadCallbackEvent {
+  final String remoteId;
+  /// Needed to track the event source coming through a single stream.
+  final String path;
+
+  OnUploadCancelledEvent({required this.remoteId, required this.path});
+}
+
+class OnUploadCompletedEvent extends UploadCallbackEvent {
+  final String remoteId;
+  /// Needed to track the event source coming through a single stream.
+  final String path;
+
+  OnUploadCompletedEvent({required this.remoteId, required this.path});
+}
+
 @EventChannelApi()
 abstract class FsManagerEvents {
   /// Get a stream of all file download events.
   DownloadCallbackEvent getFileDownloadEvents();
+  
+  /// Get a stream of all file upload events.
+  UploadCallbackEvent getFileUploadEvents();
 }
 
 @HostApi()
@@ -61,13 +99,21 @@ abstract class FsManagerApi {
   /// to be thrown.
   void download(String remoteId, String path);
 
-  /// Pause an ongoing download
+  /// Starts the upload of a file to the device.
+  /// [remoteId]: The device identifier.
+  /// [path]: The absolute path on the device where the file will be written.
+  /// [data]: The file data to upload.
+  /// Additional calls to a device that has an ongoing transfer causes a [PlatformException]
+  /// to be thrown.
+  void upload(String remoteId, String path, Uint8List data);
+
+  /// Pause an ongoing transfer
   void pauseTransfer(String remoteId);
 
-  /// Resume an ongoing download
+  /// Resume an ongoing transfer
   void continueTransfer(String remoteId);
 
-  /// Cancel an ongoing download
+  /// Cancel an ongoing transfer
   void cancelTransfer(String remoteId);
 
   @async

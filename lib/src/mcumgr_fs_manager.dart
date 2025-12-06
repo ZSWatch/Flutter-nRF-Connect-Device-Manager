@@ -1,5 +1,9 @@
 part of mcumgr_flutter;
 
+// ============================================================================
+// Download Callbacks
+// ============================================================================
+
 sealed class DownloadCallback {
   String path;
 
@@ -27,6 +31,40 @@ class OnDownloadCompleted extends DownloadCallback {
   OnDownloadCompleted(super.path, this.data);
 }
 
+// ============================================================================
+// Upload Callbacks
+// ============================================================================
+
+sealed class UploadCallback {
+  String path;
+
+  UploadCallback(this.path);
+}
+
+class OnUploadProgressChanged extends UploadCallback {
+  final int current;
+  final int total;
+  final int timestamp;
+  OnUploadProgressChanged(super.path, this.current, this.total, this.timestamp);
+}
+
+class OnUploadFailed extends UploadCallback {
+  final String? cause;
+  OnUploadFailed(super.path, this.cause);
+}
+
+class OnUploadCancelled extends UploadCallback {
+  OnUploadCancelled(super.path);
+}
+
+class OnUploadCompleted extends UploadCallback {
+  OnUploadCompleted(super.path);
+}
+
+// ============================================================================
+// FsManager Interface
+// ============================================================================
+
 abstract class FsManager {
   late final String remoteId;
 
@@ -40,6 +78,8 @@ abstract class FsManager {
 
   Stream<DownloadCallback> get downloadCallbacks;
 
+  Stream<UploadCallback> get uploadCallbacks;
+
   /// Queues a download.
   ///
   /// [path]: The absolute path of the file on the device to be downloaded.
@@ -51,6 +91,19 @@ abstract class FsManager {
   /// Throws:
   /// [PlatformException] when there are unexpected failures on the native side.
   Future<void> download(String path);
+
+  /// Queues an upload.
+  ///
+  /// [path]: The absolute path on the device where the file will be written.
+  /// [data]: The file data to upload.
+  /// Returns a [Stream] that provides updates to the upload state via [uploadCallbacks].
+  ///
+  /// Restrictions:
+  /// Only one transfer can be ongoing at a time. If not, [PlatformException] is thrown.
+  ///
+  /// Throws:
+  /// [PlatformException] when there are unexpected failures on the native side.
+  Future<void> upload(String path, Uint8List data);
 
   /// Pauses any ongoing transfer. If no transfer is ongoing, it silently returns.
   Future<void> pauseTransfer();
@@ -79,7 +132,7 @@ class _FsManagerImpl implements FsManager {
   @override
   Stream<DownloadCallback> get downloadCallbacks => getFileDownloadEvents()
       .where((event) {
-        switch (event) { // TODO("This switch can be cleaned up")
+        switch (event) {
           case OnDownloadProgressChangedEvent():
             return event.remoteId == this.remoteId;
           case OnDownloadFailedEvent():
@@ -90,11 +143,32 @@ class _FsManagerImpl implements FsManager {
             return event.remoteId == this.remoteId;
         }
       })
-      .map(translate);
+      .map(_translateDownload);
+
+  @override
+  Stream<UploadCallback> get uploadCallbacks => getFileUploadEvents()
+      .where((event) {
+        switch (event) {
+          case OnUploadProgressChangedEvent():
+            return event.remoteId == this.remoteId;
+          case OnUploadFailedEvent():
+            return event.remoteId == this.remoteId;
+          case OnUploadCancelledEvent():
+            return event.remoteId == this.remoteId;
+          case OnUploadCompletedEvent():
+            return event.remoteId == this.remoteId;
+        }
+      })
+      .map(_translateUpload);
 
   @override
   Future<void> download(String path) {
     return _api.download(remoteId, path);
+  }
+
+  @override
+  Future<void> upload(String path, Uint8List data) {
+    return _api.upload(remoteId, path, data);
   }
 
   @override
@@ -122,13 +196,18 @@ class _FsManagerImpl implements FsManager {
     return _api.kill(remoteId);
   }
 
-  static DownloadCallback translate(DownloadCallbackEvent event) => switch(event) {
+  static DownloadCallback _translateDownload(DownloadCallbackEvent event) => switch(event) {
     OnDownloadProgressChangedEvent() => OnDownloadProgressChanged(event.path, event.current, event.total, event.timestamp),
     OnDownloadFailedEvent() => OnDownloadFailed(event.path, event.cause),
     OnDownloadCancelledEvent() => OnDownloadCancelled(event.path),
     OnDownloadCompletedEvent() => OnDownloadCompleted(event.path, event.bytes),
   };
 
-
+  static UploadCallback _translateUpload(UploadCallbackEvent event) => switch(event) {
+    OnUploadProgressChangedEvent() => OnUploadProgressChanged(event.path, event.current, event.total, event.timestamp),
+    OnUploadFailedEvent() => OnUploadFailed(event.path, event.cause),
+    OnUploadCancelledEvent() => OnUploadCancelled(event.path),
+    OnUploadCompletedEvent() => OnUploadCompleted(event.path),
+  };
 }
 

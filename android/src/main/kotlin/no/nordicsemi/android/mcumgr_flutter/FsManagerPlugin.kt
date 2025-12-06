@@ -9,10 +9,12 @@ import io.runtime.mcumgr.exception.McuMgrException
 import io.runtime.mcumgr.managers.FsManager
 import io.runtime.mcumgr.response.fs.McuMgrFsStatusResponse
 import io.runtime.mcumgr.transfer.DownloadCallback
+import io.runtime.mcumgr.transfer.UploadCallback
 import io.runtime.mcumgr.transfer.TransferController
 import no.nordicsemi.android.mcumgr_flutter.logging.LoggableMcuMgrBleTransport
 import no.nordicsemi.android.mcumgr_flutter.utils.StreamHandler
 import no.nordicsemi.android.mcumgr_flutter.utils.FsDownloadStreamHandler
+import no.nordicsemi.android.mcumgr_flutter.utils.FsUploadStreamHandler
 
 class FsManagerPlugin(
     private val context: Context,
@@ -22,11 +24,13 @@ class FsManagerPlugin(
 ) : FsManagerApi {
 
     private val fsDownloadStreamHandler = FsDownloadStreamHandler()
+    private val fsUploadStreamHandler = FsUploadStreamHandler()
     private var fsManagers: MutableMap<String, FsManager> = mutableMapOf()
     private var controllers = mutableMapOf<String, TransferController>()
 
     init {
         GetFileDownloadEventsStreamHandler.register(binaryMessenger, fsDownloadStreamHandler)
+        GetFileUploadEventsStreamHandler.register(binaryMessenger, fsUploadStreamHandler)
         FsManagerApi.setUp(
             binaryMessenger,
             this
@@ -52,7 +56,7 @@ class FsManagerPlugin(
             throw FlutterError("TODO code", "A transfer is already ongoing for $remoteId.")
         }
         val mgr = getFsManager(remoteId)
-        mgr.fileDownload(
+        controllers[remoteId] = mgr.fileDownload(
             path,
             object : DownloadCallback {
                 override fun onDownloadProgressChanged(current: Int, total: Int, timestamp: Long) {
@@ -86,6 +90,53 @@ class FsManagerPlugin(
                     mainHandler.post {
                         fsDownloadStreamHandler.onEvent(
                             OnDownloadCompletedEvent(remoteId, path, p0)
+                        )
+                    }
+                }
+            }
+        )
+    }
+
+    override fun upload(remoteId: String, path: String, data: ByteArray) {
+        if (controllers[remoteId] != null) {
+            throw FlutterError("TODO code", "A transfer is already ongoing for $remoteId.")
+        }
+        val mgr = getFsManager(remoteId)
+        controllers[remoteId] = mgr.fileUpload(
+            path,
+            data,
+            object : UploadCallback {
+                override fun onUploadProgressChanged(current: Int, total: Int, timestamp: Long) {
+                    mainHandler.post {
+                        fsUploadStreamHandler.onEvent(
+                            OnUploadProgressChangedEvent(current.toLong(), total.toLong(), timestamp, remoteId, path)
+                        )
+                    }
+                }
+
+                override fun onUploadFailed(p0: McuMgrException) {
+                    controllers.remove(remoteId)
+                    mainHandler.post {
+                        fsUploadStreamHandler.onEvent(
+                            OnUploadFailedEvent(p0.message, remoteId, path)
+                        )
+                    }
+                }
+
+                override fun onUploadCanceled() {
+                    controllers.remove(remoteId)
+                    mainHandler.post {
+                        fsUploadStreamHandler.onEvent(
+                            OnUploadCancelledEvent(remoteId, path)
+                        )
+                    }
+                }
+
+                override fun onUploadCompleted() {
+                    controllers.remove(remoteId)
+                    mainHandler.post {
+                        fsUploadStreamHandler.onEvent(
+                            OnUploadCompletedEvent(remoteId, path)
                         )
                     }
                 }

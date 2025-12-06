@@ -245,6 +245,216 @@ class OnDownloadCompletedEvent extends DownloadCallbackEvent {
 ;
 }
 
+/// Generic class that matches all possible events from the native UploadCallback interface.
+sealed class UploadCallbackEvent {
+}
+
+class OnUploadProgressChangedEvent extends UploadCallbackEvent {
+  OnUploadProgressChangedEvent({
+    required this.current,
+    required this.total,
+    required this.timestamp,
+    required this.remoteId,
+    required this.path,
+  });
+
+  int current;
+
+  int total;
+
+  int timestamp;
+
+  String remoteId;
+
+  String path;
+
+  List<Object?> _toList() {
+    return <Object?>[
+      current,
+      total,
+      timestamp,
+      remoteId,
+      path,
+    ];
+  }
+
+  Object encode() {
+    return _toList();  }
+
+  static OnUploadProgressChangedEvent decode(Object result) {
+    result as List<Object?>;
+    return OnUploadProgressChangedEvent(
+      current: result[0]! as int,
+      total: result[1]! as int,
+      timestamp: result[2]! as int,
+      remoteId: result[3]! as String,
+      path: result[4]! as String,
+    );
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  bool operator ==(Object other) {
+    if (other is! OnUploadProgressChangedEvent || other.runtimeType != runtimeType) {
+      return false;
+    }
+    if (identical(this, other)) {
+      return true;
+    }
+    return _deepEquals(encode(), other.encode());
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  int get hashCode => Object.hashAll(_toList())
+;
+}
+
+class OnUploadFailedEvent extends UploadCallbackEvent {
+  OnUploadFailedEvent({
+    this.cause,
+    required this.remoteId,
+    required this.path,
+  });
+
+  String? cause;
+
+  String remoteId;
+
+  String path;
+
+  List<Object?> _toList() {
+    return <Object?>[
+      cause,
+      remoteId,
+      path,
+    ];
+  }
+
+  Object encode() {
+    return _toList();  }
+
+  static OnUploadFailedEvent decode(Object result) {
+    result as List<Object?>;
+    return OnUploadFailedEvent(
+      cause: result[0] as String?,
+      remoteId: result[1]! as String,
+      path: result[2]! as String,
+    );
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  bool operator ==(Object other) {
+    if (other is! OnUploadFailedEvent || other.runtimeType != runtimeType) {
+      return false;
+    }
+    if (identical(this, other)) {
+      return true;
+    }
+    return _deepEquals(encode(), other.encode());
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  int get hashCode => Object.hashAll(_toList())
+;
+}
+
+class OnUploadCancelledEvent extends UploadCallbackEvent {
+  OnUploadCancelledEvent({
+    required this.remoteId,
+    required this.path,
+  });
+
+  String remoteId;
+
+  /// Needed to track the event source coming through a single stream.
+  String path;
+
+  List<Object?> _toList() {
+    return <Object?>[
+      remoteId,
+      path,
+    ];
+  }
+
+  Object encode() {
+    return _toList();  }
+
+  static OnUploadCancelledEvent decode(Object result) {
+    result as List<Object?>;
+    return OnUploadCancelledEvent(
+      remoteId: result[0]! as String,
+      path: result[1]! as String,
+    );
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  bool operator ==(Object other) {
+    if (other is! OnUploadCancelledEvent || other.runtimeType != runtimeType) {
+      return false;
+    }
+    if (identical(this, other)) {
+      return true;
+    }
+    return _deepEquals(encode(), other.encode());
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  int get hashCode => Object.hashAll(_toList())
+;
+}
+
+class OnUploadCompletedEvent extends UploadCallbackEvent {
+  OnUploadCompletedEvent({
+    required this.remoteId,
+    required this.path,
+  });
+
+  String remoteId;
+
+  /// Needed to track the event source coming through a single stream.
+  String path;
+
+  List<Object?> _toList() {
+    return <Object?>[
+      remoteId,
+      path,
+    ];
+  }
+
+  Object encode() {
+    return _toList();  }
+
+  static OnUploadCompletedEvent decode(Object result) {
+    result as List<Object?>;
+    return OnUploadCompletedEvent(
+      remoteId: result[0]! as String,
+      path: result[1]! as String,
+    );
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  bool operator ==(Object other) {
+    if (other is! OnUploadCompletedEvent || other.runtimeType != runtimeType) {
+      return false;
+    }
+    if (identical(this, other)) {
+      return true;
+    }
+    return _deepEquals(encode(), other.encode());
+  }
+
+  @override
+  // ignore: avoid_equals_and_hash_code_on_mutable_classes
+  int get hashCode => Object.hashAll(_toList())
+;
+}
+
 
 class _PigeonCodec extends StandardMessageCodec {
   const _PigeonCodec();
@@ -265,6 +475,18 @@ class _PigeonCodec extends StandardMessageCodec {
     }    else if (value is OnDownloadCompletedEvent) {
       buffer.putUint8(132);
       writeValue(buffer, value.encode());
+    }    else if (value is OnUploadProgressChangedEvent) {
+      buffer.putUint8(133);
+      writeValue(buffer, value.encode());
+    }    else if (value is OnUploadFailedEvent) {
+      buffer.putUint8(134);
+      writeValue(buffer, value.encode());
+    }    else if (value is OnUploadCancelledEvent) {
+      buffer.putUint8(135);
+      writeValue(buffer, value.encode());
+    }    else if (value is OnUploadCompletedEvent) {
+      buffer.putUint8(136);
+      writeValue(buffer, value.encode());
     } else {
       super.writeValue(buffer, value);
     }
@@ -281,6 +503,14 @@ class _PigeonCodec extends StandardMessageCodec {
         return OnDownloadCancelledEvent.decode(readValue(buffer)!);
       case 132: 
         return OnDownloadCompletedEvent.decode(readValue(buffer)!);
+      case 133: 
+        return OnUploadProgressChangedEvent.decode(readValue(buffer)!);
+      case 134: 
+        return OnUploadFailedEvent.decode(readValue(buffer)!);
+      case 135: 
+        return OnUploadCancelledEvent.decode(readValue(buffer)!);
+      case 136: 
+        return OnUploadCompletedEvent.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
     }
@@ -297,6 +527,17 @@ Stream<DownloadCallbackEvent> getFileDownloadEvents( {String instanceName = ''})
       EventChannel('dev.flutter.pigeon.mcumgr_flutter.FsManagerEvents.getFileDownloadEvents$instanceName', pigeonMethodCodec);
   return getFileDownloadEventsChannel.receiveBroadcastStream().map((dynamic event) {
     return event as DownloadCallbackEvent;
+  });
+}
+    
+Stream<UploadCallbackEvent> getFileUploadEvents( {String instanceName = ''}) {
+  if (instanceName.isNotEmpty) {
+    instanceName = '.$instanceName';
+  }
+  final EventChannel getFileUploadEventsChannel =
+      EventChannel('dev.flutter.pigeon.mcumgr_flutter.FsManagerEvents.getFileUploadEvents$instanceName', pigeonMethodCodec);
+  return getFileUploadEventsChannel.receiveBroadcastStream().map((dynamic event) {
+    return event as UploadCallbackEvent;
   });
 }
     
@@ -340,7 +581,36 @@ class FsManagerApi {
     }
   }
 
-  /// Pause an ongoing download
+  /// Starts the upload of a file to the device.
+  /// [remoteId]: The device identifier.
+  /// [path]: The absolute path on the device where the file will be written.
+  /// [data]: The file data to upload.
+  /// Additional calls to a device that has an ongoing transfer causes a [PlatformException]
+  /// to be thrown.
+  Future<void> upload(String remoteId, String path, Uint8List data) async {
+    final String pigeonVar_channelName = 'dev.flutter.pigeon.mcumgr_flutter.FsManagerApi.upload$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
+      pigeonVar_channelName,
+      pigeonChannelCodec,
+      binaryMessenger: pigeonVar_binaryMessenger,
+    );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[remoteId, path, data]);
+    final List<Object?>? pigeonVar_replyList =
+        await pigeonVar_sendFuture as List<Object?>?;
+    if (pigeonVar_replyList == null) {
+      throw _createConnectionError(pigeonVar_channelName);
+    } else if (pigeonVar_replyList.length > 1) {
+      throw PlatformException(
+        code: pigeonVar_replyList[0]! as String,
+        message: pigeonVar_replyList[1] as String?,
+        details: pigeonVar_replyList[2],
+      );
+    } else {
+      return;
+    }
+  }
+
+  /// Pause an ongoing transfer
   Future<void> pauseTransfer(String remoteId) async {
     final String pigeonVar_channelName = 'dev.flutter.pigeon.mcumgr_flutter.FsManagerApi.pauseTransfer$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
@@ -364,7 +634,7 @@ class FsManagerApi {
     }
   }
 
-  /// Resume an ongoing download
+  /// Resume an ongoing transfer
   Future<void> continueTransfer(String remoteId) async {
     final String pigeonVar_channelName = 'dev.flutter.pigeon.mcumgr_flutter.FsManagerApi.continueTransfer$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
@@ -388,7 +658,7 @@ class FsManagerApi {
     }
   }
 
-  /// Cancel an ongoing download
+  /// Cancel an ongoing transfer
   Future<void> cancelTransfer(String remoteId) async {
     final String pigeonVar_channelName = 'dev.flutter.pigeon.mcumgr_flutter.FsManagerApi.cancelTransfer$pigeonVar_messageChannelSuffix';
     final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
