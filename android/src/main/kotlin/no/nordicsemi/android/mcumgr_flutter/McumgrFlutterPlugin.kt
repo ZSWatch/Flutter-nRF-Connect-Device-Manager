@@ -48,6 +48,7 @@ class McumgrFlutterPlugin : FlutterPlugin, MethodCallHandler {
 
 	private var managers: MutableMap<String, UpdateManager> = mutableMapOf()
 	private lateinit var fsManagerPlugin: FsManagerPlugin
+	private lateinit var osManagerPlugin: OsManagerPlugin
 
 	override fun onAttachedToEngine(@NonNull flutterPluginBinding: FlutterPlugin.FlutterPluginBinding) {
 		context = flutterPluginBinding.applicationContext
@@ -68,6 +69,12 @@ class McumgrFlutterPlugin : FlutterPlugin, MethodCallHandler {
 			logStreamHandler,
 			flutterPluginBinding.binaryMessenger,
 			mainHandler
+		)
+
+		osManagerPlugin = OsManagerPlugin(
+			context,
+			logStreamHandler,
+			flutterPluginBinding.binaryMessenger
 		)
 	}
 

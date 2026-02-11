@@ -62,7 +62,15 @@ class FsManagerPlugin : FsManagerApi {
             remoteId: remoteId,
             path: path
         )
-        guard mgr.upload(name: path, data: data.data, delegate: delegate) else {
+        
+        // Use pipelined configuration for faster uploads - same approach as Nordic nRF Connect Device Manager app
+        // pipelineDepth: Number of packets to send without waiting for ACK (3 is a good balance for most devices)
+        // byteAlignment: Required for pipelining to work correctly (.fourByte for Nordic devices)
+        var config = FirmwareUpgradeConfiguration()
+        config.pipelineDepth = 3
+        config.byteAlignment = .fourByte
+        
+        guard mgr.upload(name: path, data: data.data, using: config, delegate: delegate) else {
             throw PigeonError(code: "TODO Code", message: "Upload failed to successfully start. Likely due to ongoing transaction.", details: nil)
         }
         uploadDelegates[remoteId] = delegate

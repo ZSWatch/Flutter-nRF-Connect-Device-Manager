@@ -725,3 +725,57 @@ class FsManagerApiSetup {
     }
   }
 }
+/// Generated protocol from Pigeon that represents a handler of messages from Flutter.
+protocol OsManagerApi {
+  /// Send a reset command to the device via MCUmgr OS management group.
+  /// This causes the device to reboot.
+  func reset(remoteId: String, completion: @escaping (Result<Void, Error>) -> Void)
+  /// Kill the OsManager instance on the native platform,
+  /// releasing the BLE transport.
+  func kill(remoteId: String) throws
+}
+
+/// Generated setup class from Pigeon to handle messages through the `binaryMessenger`.
+class OsManagerApiSetup {
+  static var codec: FlutterStandardMessageCodec { MessagesPigeonCodec.shared }
+  /// Sets up an instance of `OsManagerApi` to handle messages through the `binaryMessenger`.
+  static func setUp(binaryMessenger: FlutterBinaryMessenger, api: OsManagerApi?, messageChannelSuffix: String = "") {
+    let channelSuffix = messageChannelSuffix.count > 0 ? ".\(messageChannelSuffix)" : ""
+    /// Send a reset command to the device via MCUmgr OS management group.
+    /// This causes the device to reboot.
+    let resetChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.mcumgr_flutter.OsManagerApi.reset\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      resetChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let remoteIdArg = args[0] as! String
+        api.reset(remoteId: remoteIdArg) { result in
+          switch result {
+          case .success:
+            reply(wrapResult(nil))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      resetChannel.setMessageHandler(nil)
+    }
+    /// Kill the OsManager instance on the native platform,
+    /// releasing the BLE transport.
+    let killChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.mcumgr_flutter.OsManagerApi.kill\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      killChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let remoteIdArg = args[0] as! String
+        do {
+          try api.kill(remoteId: remoteIdArg)
+          reply(wrapResult(nil))
+        } catch {
+          reply(wrapError(error))
+        }
+      }
+    } else {
+      killChannel.setMessageHandler(nil)
+    }
+  }
+}

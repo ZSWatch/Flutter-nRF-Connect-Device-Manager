@@ -122,3 +122,15 @@ abstract class FsManagerApi {
   /// Kill the FsManager instance on the native platform.
   void kill(String remoteId);
 }
+
+@HostApi()
+abstract class OsManagerApi {
+  /// Send a reset command to the device via MCUmgr OS management group.
+  /// This causes the device to reboot.
+  @async
+  void reset(String remoteId);
+
+  /// Kill the OsManager instance on the native platform,
+  /// releasing the BLE transport.
+  void kill(String remoteId);
+}

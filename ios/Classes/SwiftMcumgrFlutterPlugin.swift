@@ -15,6 +15,7 @@ public class SwiftMcumgrFlutterPlugin: NSObject, FlutterPlugin {
     private let updateProgressEventChannel: FlutterEventChannel
 
     private let fsManagerPlugin: FsManagerPlugin
+    private let osManagerPlugin: OsManagerPlugin
 
     // Log channels
     private let logEventChannel: FlutterEventChannel
@@ -35,6 +36,10 @@ public class SwiftMcumgrFlutterPlugin: NSObject, FlutterPlugin {
         self.updateProgressEventChannel = updateProgressEventChannel
         self.logEventChannel = logEventChannel
         self.fsManagerPlugin = FsManagerPlugin(
+            centralManager: centralManager,
+            messenger: binaryMessenger
+        )
+        self.osManagerPlugin = OsManagerPlugin(
             centralManager: centralManager,
             messenger: binaryMessenger
         )
