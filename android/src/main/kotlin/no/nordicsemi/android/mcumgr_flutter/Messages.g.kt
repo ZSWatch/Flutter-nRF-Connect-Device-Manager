@@ -371,6 +371,41 @@ data class OnUploadCompletedEvent (
 
   override fun hashCode(): Int = toList().hashCode()
 }
+
+/**
+ * Response from a shell command execution via SMP shell management group.
+ *
+ * Generated class from Pigeon that represents data sent in messages.
+ */
+data class ShellResponse (
+  val output: String,
+  val returnCode: Long
+)
+ {
+  companion object {
+    fun fromList(pigeonVar_list: List<Any?>): ShellResponse {
+      val output = pigeonVar_list[0] as String
+      val returnCode = pigeonVar_list[1] as Long
+      return ShellResponse(output, returnCode)
+    }
+  }
+  fun toList(): List<Any?> {
+    return listOf(
+      output,
+      returnCode,
+    )
+  }
+  override fun equals(other: Any?): Boolean {
+    if (other !is ShellResponse) {
+      return false
+    }
+    if (this === other) {
+      return true
+    }
+    return MessagesPigeonUtils.deepEquals(toList(), other.toList())  }
+
+  override fun hashCode(): Int = toList().hashCode()
+}
 private open class MessagesPigeonCodec : StandardMessageCodec() {
   override fun readValueOfType(type: Byte, buffer: ByteBuffer): Any? {
     return when (type) {
@@ -414,6 +449,11 @@ private open class MessagesPigeonCodec : StandardMessageCodec() {
           OnUploadCompletedEvent.fromList(it)
         }
       }
+      137.toByte() -> {
+        return (readValue(buffer) as? List<Any?>)?.let {
+          ShellResponse.fromList(it)
+        }
+      }
       else -> super.readValueOfType(type, buffer)
     }
   }
@@ -449,6 +489,10 @@ private open class MessagesPigeonCodec : StandardMessageCodec() {
       }
       is OnUploadCompletedEvent -> {
         stream.write(136)
+        writeValue(stream, value.toList())
+      }
+      is ShellResponse -> {
+        stream.write(137)
         writeValue(stream, value.toList())
       }
       else -> super.writeValue(stream, value)
@@ -736,6 +780,73 @@ interface OsManagerApi {
       }
       run {
         val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.mcumgr_flutter.OsManagerApi.kill$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val remoteIdArg = args[0] as String
+            val wrapped: List<Any?> = try {
+              api.kill(remoteIdArg)
+              listOf(null)
+            } catch (exception: Throwable) {
+              MessagesPigeonUtils.wrapError(exception)
+            }
+            reply.reply(wrapped)
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+    }
+  }
+}
+/** Generated interface from Pigeon that represents a handler of messages from Flutter. */
+interface ShellManagerApi {
+  /**
+   * Execute a shell command on the device via MCUmgr shell management group (group 9).
+   *
+   * [remoteId] - The BLE device remote ID.
+   * [command] - The shell command string (e.g. "kernel threads").
+   * Returns a [ShellResponse] with the command output and return code.
+   */
+  fun execute(remoteId: String, command: String, callback: (Result<ShellResponse>) -> Unit)
+  /**
+   * Kill the ShellManager instance on the native platform,
+   * releasing the BLE transport.
+   */
+  fun kill(remoteId: String)
+
+  companion object {
+    /** The codec used by ShellManagerApi. */
+    val codec: MessageCodec<Any?> by lazy {
+      MessagesPigeonCodec()
+    }
+    /** Sets up an instance of `ShellManagerApi` to handle messages through the `binaryMessenger`. */
+    @JvmOverloads
+    fun setUp(binaryMessenger: BinaryMessenger, api: ShellManagerApi?, messageChannelSuffix: String = "") {
+      val separatedMessageChannelSuffix = if (messageChannelSuffix.isNotEmpty()) ".$messageChannelSuffix" else ""
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.mcumgr_flutter.ShellManagerApi.execute$separatedMessageChannelSuffix", codec)
+        if (api != null) {
+          channel.setMessageHandler { message, reply ->
+            val args = message as List<Any?>
+            val remoteIdArg = args[0] as String
+            val commandArg = args[1] as String
+            api.execute(remoteIdArg, commandArg) { result: Result<ShellResponse> ->
+              val error = result.exceptionOrNull()
+              if (error != null) {
+                reply.reply(MessagesPigeonUtils.wrapError(error))
+              } else {
+                val data = result.getOrNull()
+                reply.reply(MessagesPigeonUtils.wrapResult(data))
+              }
+            }
+          }
+        } else {
+          channel.setMessageHandler(null)
+        }
+      }
+      run {
+        val channel = BasicMessageChannel<Any?>(binaryMessenger, "dev.flutter.pigeon.mcumgr_flutter.ShellManagerApi.kill$separatedMessageChannelSuffix", codec)
         if (api != null) {
           channel.setMessageHandler { message, reply ->
             val args = message as List<Any?>

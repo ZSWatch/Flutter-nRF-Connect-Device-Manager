@@ -417,6 +417,37 @@ struct OnUploadCompletedEvent: UploadCallbackEvent {
   }
 }
 
+/// Response from a shell command execution via SMP shell management group.
+///
+/// Generated class from Pigeon that represents data sent in messages.
+struct ShellResponse: Hashable {
+  var output: String
+  var returnCode: Int64
+
+
+  // swift-format-ignore: AlwaysUseLowerCamelCase
+  static func fromList(_ pigeonVar_list: [Any?]) -> ShellResponse? {
+    let output = pigeonVar_list[0] as! String
+    let returnCode = pigeonVar_list[1] as! Int64
+
+    return ShellResponse(
+      output: output,
+      returnCode: returnCode
+    )
+  }
+  func toList() -> [Any?] {
+    return [
+      output,
+      returnCode,
+    ]
+  }
+  static func == (lhs: ShellResponse, rhs: ShellResponse) -> Bool {
+    return deepEqualsMessages(lhs.toList(), rhs.toList())  }
+  func hash(into hasher: inout Hasher) {
+    deepHashMessages(value: toList(), hasher: &hasher)
+  }
+}
+
 private class MessagesPigeonCodecReader: FlutterStandardReader {
   override func readValue(ofType type: UInt8) -> Any? {
     switch type {
@@ -436,6 +467,8 @@ private class MessagesPigeonCodecReader: FlutterStandardReader {
       return OnUploadCancelledEvent.fromList(self.readValue() as! [Any?])
     case 136:
       return OnUploadCompletedEvent.fromList(self.readValue() as! [Any?])
+    case 137:
+      return ShellResponse.fromList(self.readValue() as! [Any?])
     default:
       return super.readValue(ofType: type)
     }
@@ -467,6 +500,9 @@ private class MessagesPigeonCodecWriter: FlutterStandardWriter {
       super.writeValue(value.toList())
     } else if let value = value as? OnUploadCompletedEvent {
       super.writeByte(136)
+      super.writeValue(value.toList())
+    } else if let value = value as? ShellResponse {
+      super.writeByte(137)
       super.writeValue(value.toList())
     } else {
       super.writeValue(value)
@@ -763,6 +799,67 @@ class OsManagerApiSetup {
     /// Kill the OsManager instance on the native platform,
     /// releasing the BLE transport.
     let killChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.mcumgr_flutter.OsManagerApi.kill\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      killChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let remoteIdArg = args[0] as! String
+        do {
+          try api.kill(remoteId: remoteIdArg)
+          reply(wrapResult(nil))
+        } catch {
+          reply(wrapError(error))
+        }
+      }
+    } else {
+      killChannel.setMessageHandler(nil)
+    }
+  }
+}
+/// Generated protocol from Pigeon that represents a handler of messages from Flutter.
+protocol ShellManagerApi {
+  /// Execute a shell command on the device via MCUmgr shell management group (group 9).
+  ///
+  /// [remoteId] - The BLE device remote ID.
+  /// [command] - The shell command string (e.g. "kernel threads").
+  /// Returns a [ShellResponse] with the command output and return code.
+  func execute(remoteId: String, command: String, completion: @escaping (Result<ShellResponse, Error>) -> Void)
+  /// Kill the ShellManager instance on the native platform,
+  /// releasing the BLE transport.
+  func kill(remoteId: String) throws
+}
+
+/// Generated setup class from Pigeon to handle messages through the `binaryMessenger`.
+class ShellManagerApiSetup {
+  static var codec: FlutterStandardMessageCodec { MessagesPigeonCodec.shared }
+  /// Sets up an instance of `ShellManagerApi` to handle messages through the `binaryMessenger`.
+  static func setUp(binaryMessenger: FlutterBinaryMessenger, api: ShellManagerApi?, messageChannelSuffix: String = "") {
+    let channelSuffix = messageChannelSuffix.count > 0 ? ".\(messageChannelSuffix)" : ""
+    /// Execute a shell command on the device via MCUmgr shell management group (group 9).
+    ///
+    /// [remoteId] - The BLE device remote ID.
+    /// [command] - The shell command string (e.g. "kernel threads").
+    /// Returns a [ShellResponse] with the command output and return code.
+    let executeChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.mcumgr_flutter.ShellManagerApi.execute\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
+    if let api = api {
+      executeChannel.setMessageHandler { message, reply in
+        let args = message as! [Any?]
+        let remoteIdArg = args[0] as! String
+        let commandArg = args[1] as! String
+        api.execute(remoteId: remoteIdArg, command: commandArg) { result in
+          switch result {
+          case .success(let res):
+            reply(wrapResult(res))
+          case .failure(let error):
+            reply(wrapError(error))
+          }
+        }
+      }
+    } else {
+      executeChannel.setMessageHandler(nil)
+    }
+    /// Kill the ShellManager instance on the native platform,
+    /// releasing the BLE transport.
+    let killChannel = FlutterBasicMessageChannel(name: "dev.flutter.pigeon.mcumgr_flutter.ShellManagerApi.kill\(channelSuffix)", binaryMessenger: binaryMessenger, codec: codec)
     if let api = api {
       killChannel.setMessageHandler { message, reply in
         let args = message as! [Any?]

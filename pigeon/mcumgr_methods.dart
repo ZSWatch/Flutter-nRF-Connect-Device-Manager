@@ -134,3 +134,26 @@ abstract class OsManagerApi {
   /// releasing the BLE transport.
   void kill(String remoteId);
 }
+
+/// Response from a shell command execution via SMP shell management group.
+class ShellResponse {
+  final String output;
+  final int returnCode;
+
+  ShellResponse({required this.output, required this.returnCode});
+}
+
+@HostApi()
+abstract class ShellManagerApi {
+  /// Execute a shell command on the device via MCUmgr shell management group (group 9).
+  ///
+  /// [remoteId] - The BLE device remote ID.
+  /// [command] - The shell command string (e.g. "kernel threads").
+  /// Returns a [ShellResponse] with the command output and return code.
+  @async
+  ShellResponse execute(String remoteId, String command);
+
+  /// Kill the ShellManager instance on the native platform,
+  /// releasing the BLE transport.
+  void kill(String remoteId);
+}

@@ -8,6 +8,7 @@ import 'models/firmware_upgrade_mode.dart';
 import 'src/mcumgr_update_manager.dart';
 
 export 'src/mcumgr_os_manager.dart';
+export 'src/mcumgr_shell_manager.dart';
 
 part 'src/mcumgr_flutter.dart';
 part 'models/progress_update.dart';
