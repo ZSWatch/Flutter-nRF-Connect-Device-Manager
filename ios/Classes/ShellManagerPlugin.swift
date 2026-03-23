@@ -37,10 +37,10 @@ class ShellManagerPlugin: ShellManagerApi {
                     completion(Result.failure(error))
                 } else {
                     let output = response?.output ?? ""
-                    let rc = response?.ret ?? -1
+                    let rc = response.map { Int64($0.rc.rawValue) } ?? -1
                     let shellResponse = ShellResponse(
                         output: output,
-                        returnCode: Int64(rc)
+                        returnCode: rc
                     )
                     completion(Result.success(shellResponse))
                 }
