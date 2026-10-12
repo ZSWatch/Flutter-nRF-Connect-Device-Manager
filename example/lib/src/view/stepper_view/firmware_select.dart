@@ -18,13 +18,14 @@ class FirmwareSelect extends StatelessWidget {
         if (updateParameters.firmware != null)
           Text(updateParameters.firmware!.name),
         ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => FirmwareList()),
-              );
-            },
-            child: Text('Select Firmware')),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => FirmwareList()),
+            );
+          },
+          child: Text('Select Firmware'),
+        ),
       ],
     );
   }

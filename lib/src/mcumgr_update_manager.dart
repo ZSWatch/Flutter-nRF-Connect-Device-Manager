@@ -14,7 +14,7 @@ class DeviceUpdateManager extends FirmwareUpdateManager {
   final McuMgrLogger _logger;
 
   DeviceUpdateManager._deviceIdentifier(this._deviceId)
-      : this._logger = McuMgrLogger.deviceIdentifier(_deviceId);
+    : this._logger = McuMgrLogger.deviceIdentifier(_deviceId);
 
   // STREAM CONTROLLERS
   // All stream controllers are closed in the `kill()` method.
@@ -49,14 +49,18 @@ class DeviceUpdateManager extends FirmwareUpdateManager {
   static Future<DeviceUpdateManager> getInstance(String deviceId) async {
     try {
       await methodChannel.invokeMethod(
-          UpdateManagerMethod.initializeUpdateManager.rawValue, deviceId);
+        UpdateManagerMethod.initializeUpdateManager.rawValue,
+        deviceId,
+      );
     } catch (error, stack) {
-      FlutterError.reportError(FlutterErrorDetails(
-        exception: error,
-        stack: stack,
-        library: 'mcumgr_flutter',
-        context: ErrorDescription('getInstance: initialize Update Manager'),
-      ));
+      FlutterError.reportError(
+        FlutterErrorDetails(
+          exception: error,
+          stack: stack,
+          library: 'mcumgr_flutter',
+          context: ErrorDescription('getInstance: initialize Update Manager'),
+        ),
+      );
     }
 
     final um = DeviceUpdateManager._deviceIdentifier(deviceId);
@@ -75,7 +79,7 @@ class DeviceUpdateManager extends FirmwareUpdateManager {
     _setupUpdateStateStream();
     return _updateStateStreamController!.stream;
   }
-/*
+  /*
   Future<void> updateMap(List<Image> images) async {
     return await methodChannel.invokeMethod(
         UpdateManagerMethod.update.rawValue,
@@ -87,16 +91,19 @@ class DeviceUpdateManager extends FirmwareUpdateManager {
   */
 
   @override
-  Future<void> update(List<Image> images,
-      {FirmwareUpgradeConfiguration configuration =
-          const FirmwareUpgradeConfiguration()}) async {
+  Future<void> update(
+    List<Image> images, {
+    FirmwareUpgradeConfiguration configuration =
+        const FirmwareUpgradeConfiguration(),
+  }) async {
     return await methodChannel.invokeMethod(
-        UpdateManagerMethod.update.rawValue,
-        ProtoUpdateWithImageCallArguments(
-          deviceUuid: _deviceId,
-          images: images.map((e) => e.toProto()).toList(),
-          configuration: configuration.proto(),
-        ).writeToBuffer());
+      UpdateManagerMethod.update.rawValue,
+      ProtoUpdateWithImageCallArguments(
+        deviceUuid: _deviceId,
+        images: images.map((e) => e.toProto()).toList(),
+        configuration: configuration.proto(),
+      ).writeToBuffer(),
+    );
   }
 
   @override
@@ -106,40 +113,51 @@ class DeviceUpdateManager extends FirmwareUpdateManager {
     FirmwareUpgradeConfiguration? configuration,
   }) {
     return methodChannel.invokeMethod(
-        UpdateManagerMethod.updateSingleImage.rawValue,
-        ProtoUpdateCallArgument(
-          deviceUuid: _deviceId,
-          firmwareData: imageData,
-          hash: hash,
-          configuration: configuration?.proto(),
-        ).writeToBuffer());
+      UpdateManagerMethod.updateSingleImage.rawValue,
+      ProtoUpdateCallArgument(
+        deviceUuid: _deviceId,
+        firmwareData: imageData,
+        hash: hash,
+        configuration: configuration?.proto(),
+      ).writeToBuffer(),
+    );
   }
 
   @override
   Future<void> pause() async {
     await methodChannel.invokeMethod(
-        UpdateManagerMethod.pause.rawValue, _deviceId);
+      UpdateManagerMethod.pause.rawValue,
+      _deviceId,
+    );
     _updateInProgressStreamController!.add(false);
   }
 
   @override
   Future<void> resume() async {
     await methodChannel.invokeMethod(
-        UpdateManagerMethod.resume.rawValue, _deviceId);
+      UpdateManagerMethod.resume.rawValue,
+      _deviceId,
+    );
     _updateInProgressStreamController!.add(true);
   }
 
   @override
   Future<void> cancel() async => await methodChannel.invokeMethod(
-      UpdateManagerMethod.cancel.rawValue, _deviceId);
+    UpdateManagerMethod.cancel.rawValue,
+    _deviceId,
+  );
 
   @override
   Future<bool> inProgress() async => await methodChannel.invokeMethod(
-      UpdateManagerMethod.isInProgress.rawValue, _deviceId);
+    UpdateManagerMethod.isInProgress.rawValue,
+    _deviceId,
+  );
 
   @override
   Future<bool> isPaused() async => await methodChannel.invokeMethod(
-      UpdateManagerMethod.isPaused.rawValue, _deviceId);
+    UpdateManagerMethod.isPaused.rawValue,
+    _deviceId,
+  );
 
   void _setupProgressUpdateStream() {
     UpdateManagerChannel.progressStream
@@ -147,8 +165,10 @@ class DeviceUpdateManager extends FirmwareUpdateManager {
         .map((event) => ProtoProgressUpdateStreamArg.fromBuffer(event))
         .where((event) => event.uuid == _deviceId)
         .where((event) => event.hasProgressUpdate())
-        .listen((event) =>
-            _progressStreamController.add(event.progressUpdate.convert()));
+        .listen(
+          (event) =>
+              _progressStreamController.add(event.progressUpdate.convert()),
+        );
   }
 
   void _setupUpdateStateStream() {
@@ -157,34 +177,36 @@ class DeviceUpdateManager extends FirmwareUpdateManager {
         .map((event) => ProtoUpdateStateChangesStreamArg.fromBuffer(event))
         .where((event) => event.uuid == _deviceId)
         .listen((data) async {
-      if (data.hasError()) {
-        _updateStateStreamController!.addError(data.error.localizedDescription);
-        return;
-      }
+          if (data.hasError()) {
+            _updateStateStreamController!.addError(
+              data.error.localizedDescription,
+            );
+            return;
+          }
 
-      if (data.done) {
-        _updateStateStreamController!.close();
-        return;
-      }
+          if (data.done) {
+            _updateStateStreamController!.close();
+            return;
+          }
 
-      if (!data.hasUpdateStateChanges()) {
-        return;
-      }
+          if (!data.hasUpdateStateChanges()) {
+            return;
+          }
 
-      final stateChanges = data.updateStateChanges;
-      if (stateChanges.canceled) {
-        await _updateStateStreamController!.close();
-        return;
-      }
+          final stateChanges = data.updateStateChanges;
+          if (stateChanges.canceled) {
+            await _updateStateStreamController!.close();
+            return;
+          }
 
-      var d = stateChanges.newState.convert();
+          var d = stateChanges.newState.convert();
 
-      _updateStateStreamController!.add(d);
+          _updateStateStreamController!.add(d);
 
-      if (d == FirmwareUpgradeState.upload) {
-        _updateInProgressStreamController!.add(true);
-      }
-    });
+          if (d == FirmwareUpgradeState.upload) {
+            _updateInProgressStreamController!.add(true);
+          }
+        });
   }
 
   @override
@@ -200,7 +222,9 @@ class DeviceUpdateManager extends FirmwareUpdateManager {
     });
 
     await methodChannel.invokeMethod(
-        UpdateManagerMethod.kill.rawValue, _deviceId);
+      UpdateManagerMethod.kill.rawValue,
+      _deviceId,
+    );
   }
 
   @override
@@ -209,7 +233,9 @@ class DeviceUpdateManager extends FirmwareUpdateManager {
   @override
   Future<List<ImageSlot>?> readImageList() async {
     final response = await methodChannel.invokeMethod(
-        UpdateManagerMethod.readImageList.rawValue, _deviceId);
+      UpdateManagerMethod.readImageList.rawValue,
+      _deviceId,
+    );
 
     final listImagesResponse = ProtoListImagesResponse.fromBuffer(response);
     if (listImagesResponse.existing) {

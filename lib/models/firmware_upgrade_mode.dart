@@ -27,8 +27,9 @@ class FirmwareUpgradeMode {
   ///
   /// Use this mode when the new image supports SMP service and you want to
   /// test it before confirming.
-  static const FirmwareUpgradeMode testAndConfirm =
-      const FirmwareUpgradeMode._(2);
+  static const FirmwareUpgradeMode testAndConfirm = const FirmwareUpgradeMode._(
+    2,
+  );
 
   /// Upload Only is a very particular mode. It ignores Bootloader Info, does not
   /// test nor confirm any uploded images. It does list/verify, proceed to upload

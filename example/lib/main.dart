@@ -29,9 +29,7 @@ class _MyAppState extends State<MyApp> {
   MaterialApp _materialApp(BuildContext context) {
     return MaterialApp(
       home: Scaffold(
-        appBar: AppBar(
-          title: Text('MCU Manager'),
-        ),
+        appBar: AppBar(title: Text('MCU Manager')),
         body: _body(context),
       ),
     );
@@ -81,11 +79,10 @@ class _MyAppState extends State<MyApp> {
           return Container();
         }
         return Center(
-          child:
-            ElevatedButton(
-              onPressed: details.onStepContinue,
-              child: Text('Next'),
-            ),
+          child: ElevatedButton(
+            onPressed: details.onStepContinue,
+            child: Text('Next'),
+          ),
         );
       case 1:
         if (parameters.peripheral == null) {
@@ -94,10 +91,7 @@ class _MyAppState extends State<MyApp> {
         return Row(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            TextButton(
-              onPressed: details.onStepCancel,
-              child: Text('Back'),
-            ),
+            TextButton(onPressed: details.onStepCancel, child: Text('Back')),
             ElevatedButton(
               onPressed: details.onStepContinue,
               child: Text('Next'),

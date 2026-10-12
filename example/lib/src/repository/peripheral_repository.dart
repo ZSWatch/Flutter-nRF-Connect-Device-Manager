@@ -7,9 +7,11 @@ class PeripheralRepository {
   Stream<List<ScanResult>> get discoveredPeripherals =>
       FlutterBluePlus.scanResults.map((scanResult) {
         return scanResult
-            .where((p) =>
-                p.advertisementData.advName.isNotEmpty &&
-                p.advertisementData.connectable)
+            .where(
+              (p) =>
+                  p.advertisementData.advName.isNotEmpty &&
+                  p.advertisementData.connectable,
+            )
             .toList();
       });
 
@@ -33,7 +35,8 @@ class PeripheralRepository {
 
     await FlutterBluePlus.adapterState
         .where(
-            (BluetoothAdapterState state) => state == BluetoothAdapterState.on)
+          (BluetoothAdapterState state) => state == BluetoothAdapterState.on,
+        )
         .first;
 
     await FlutterBluePlus.startScan();

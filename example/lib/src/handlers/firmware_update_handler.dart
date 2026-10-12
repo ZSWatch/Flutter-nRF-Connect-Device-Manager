@@ -19,7 +19,9 @@ typedef FirmwareUpdateCallback = void Function(FirmwareUpdateState state);
 abstract class FirmwareUpdateHandler {
   FirmwareUpdateHandler? _nextHandler;
   Future<FirmwareUpdateManager> handleFirmwareUpdate(
-      FirmwareUpdateRequest request, FirmwareUpdateCallback? callback);
+    FirmwareUpdateRequest request,
+    FirmwareUpdateCallback? callback,
+  );
 
   Future<void> setNextHandler(FirmwareUpdateHandler handler) async {
     _nextHandler = handler;
@@ -29,7 +31,9 @@ abstract class FirmwareUpdateHandler {
 class FirmwareDownloader extends FirmwareUpdateHandler {
   @override
   Future<FirmwareUpdateManager> handleFirmwareUpdate(
-      FirmwareUpdateRequest request, FirmwareUpdateCallback? callback) async {
+    FirmwareUpdateRequest request,
+    FirmwareUpdateCallback? callback,
+  ) async {
     if (request.firmware is LocalFirmware) {
       if (request is MultiImageFirmwareUpdateRequest) {
         request.zipFile = (request.firmware as LocalFirmware).data;
@@ -47,23 +51,30 @@ class FirmwareDownloader extends FirmwareUpdateHandler {
 
     final remoteFirmware = multiImageRequest.remoteFirmware!;
 
-    final response = await http.get(Uri.parse(
-        '${FirmwareImageRepository.baseUrl}${remoteFirmware.firmware.file}'));
+    final response = await http.get(
+      Uri.parse(
+        '${FirmwareImageRepository.baseUrl}${remoteFirmware.firmware.file}',
+      ),
+    );
     if (response.statusCode == 200) {
       multiImageRequest.zipFile = response.bodyBytes;
     } else {
       throw Exception('Failed to download firmware');
     }
 
-    return await _nextHandler!
-        .handleFirmwareUpdate(multiImageRequest, callback);
+    return await _nextHandler!.handleFirmwareUpdate(
+      multiImageRequest,
+      callback,
+    );
   }
 }
 
 class FirmwareUnpacker extends FirmwareUpdateHandler {
   @override
   Future<FirmwareUpdateManager> handleFirmwareUpdate(
-      FirmwareUpdateRequest request, FirmwareUpdateCallback? callback) async {
+    FirmwareUpdateRequest request,
+    FirmwareUpdateCallback? callback,
+  ) async {
     callback?.call(FirmwareUnpackStarted());
 
     if (request.firmware == null) {
@@ -108,10 +119,7 @@ class FirmwareUnpacker extends FirmwareUpdateHandler {
     for (final file in manifest.files) {
       final firmwareFile = File('${destinationDir.path}/${file.file}');
       final firmwareFileData = await firmwareFile.readAsBytes();
-      final image = Image(
-        image: file.image,
-        data: firmwareFileData,
-      );
+      final image = Image(image: file.image, data: firmwareFileData);
       firmware.firmwareImages!.add(image);
     }
 
@@ -128,15 +136,18 @@ class FirmwareUpdater extends FirmwareUpdateHandler {
 
   @override
   Future<FirmwareUpdateManager> handleFirmwareUpdate(
-      FirmwareUpdateRequest request, FirmwareUpdateCallback? callback) async {
+    FirmwareUpdateRequest request,
+    FirmwareUpdateCallback? callback,
+  ) async {
     callback?.call(FirmwareUploadStarted());
 
     if (request.peripheral == null) {
       throw Exception('Peripheral is not selected');
     }
 
-    final updateManager = await _updateManagerFactory
-        .getUpdateManager(request.peripheral!.identifier);
+    final updateManager = await _updateManagerFactory.getUpdateManager(
+      request.peripheral!.identifier,
+    );
 
     updateManager.setup();
 

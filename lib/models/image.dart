@@ -6,10 +6,5 @@ class Image {
   Uint8List? hash;
   Uint8List data;
 
-  Image({
-    required this.image,
-    this.slot,
-    this.hash,
-    required this.data,
-  });
+  Image({required this.image, this.slot, this.hash, required this.data});
 }

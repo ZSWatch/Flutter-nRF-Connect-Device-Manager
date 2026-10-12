@@ -7,10 +7,7 @@ class ApplicationResponse {
   final int version;
   final List<Application> applications;
 
-  ApplicationResponse({
-    required this.version,
-    required this.applications,
-  });
+  ApplicationResponse({required this.version, required this.applications});
 
   factory ApplicationResponse.fromJson(Map<String, dynamic> json) =>
       _$ApplicationResponseFromJson(json);
@@ -65,10 +62,7 @@ class Board {
   String name;
   List<BuildConfig> buildConfig;
 
-  Board({
-    required this.name,
-    required this.buildConfig,
-  });
+  Board({required this.name, required this.buildConfig});
 
   factory Board.fromJson(Map<String, dynamic> json) => _$BoardFromJson(json);
 }
@@ -102,10 +96,7 @@ class ChildCore {
   String name;
   String config;
 
-  ChildCore({
-    required this.name,
-    required this.config,
-  });
+  ChildCore({required this.name, required this.config});
 
   factory ChildCore.fromJson(Map<String, dynamic> json) =>
       _$ChildCoreFromJson(json);
@@ -116,10 +107,7 @@ class Option {
   String name;
   String command;
 
-  Option({
-    required this.name,
-    required this.command,
-  });
+  Option({required this.name, required this.command});
 
   factory Option.fromJson(Map<String, dynamic> json) => _$OptionFromJson(json);
 }
@@ -129,10 +117,7 @@ class Link {
   String text;
   String url;
 
-  Link({
-    required this.text,
-    required this.url,
-  });
+  Link({required this.text, required this.url});
 
   factory Link.fromJson(Map<String, dynamic> json) => _$LinkFromJson(json);
 }

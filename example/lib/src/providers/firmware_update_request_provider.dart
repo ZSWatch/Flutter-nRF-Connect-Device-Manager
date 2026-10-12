@@ -9,8 +9,9 @@ class FirmwareUpdateRequestProvider extends ChangeNotifier {
 
   void setFirmware(SelectedFirmware? firmware) {
     if (firmware == null) {
-      _updateParameters =
-          FirmwareUpdateRequest(peripheral: _updateParameters.peripheral);
+      _updateParameters = FirmwareUpdateRequest(
+        peripheral: _updateParameters.peripheral,
+      );
       return;
     }
 

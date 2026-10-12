@@ -14,24 +14,27 @@ PlatformException _createConnectionError(String channelName) {
     message: 'Unable to establish connection on channel: "$channelName".',
   );
 }
+
 bool _deepEquals(Object? a, Object? b) {
   if (a is List && b is List) {
     return a.length == b.length &&
-        a.indexed
-        .every(((int, dynamic) item) => _deepEquals(item.$2, b[item.$1]));
+        a.indexed.every(
+          ((int, dynamic) item) => _deepEquals(item.$2, b[item.$1]),
+        );
   }
   if (a is Map && b is Map) {
-    return a.length == b.length && a.entries.every((MapEntry<Object?, Object?> entry) =>
-        (b as Map<Object?, Object?>).containsKey(entry.key) &&
-        _deepEquals(entry.value, b[entry.key]));
+    return a.length == b.length &&
+        a.entries.every(
+          (MapEntry<Object?, Object?> entry) =>
+              (b as Map<Object?, Object?>).containsKey(entry.key) &&
+              _deepEquals(entry.value, b[entry.key]),
+        );
   }
   return a == b;
 }
 
-
 /// Generic class that matches all possible events from the native DownloadCallback interface.
-sealed class DownloadCallbackEvent {
-}
+sealed class DownloadCallbackEvent {}
 
 class OnDownloadProgressChangedEvent extends DownloadCallbackEvent {
   OnDownloadProgressChangedEvent({
@@ -53,17 +56,12 @@ class OnDownloadProgressChangedEvent extends DownloadCallbackEvent {
   String path;
 
   List<Object?> _toList() {
-    return <Object?>[
-      current,
-      total,
-      timestamp,
-      remoteId,
-      path,
-    ];
+    return <Object?>[current, total, timestamp, remoteId, path];
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static OnDownloadProgressChangedEvent decode(Object result) {
     result as List<Object?>;
@@ -79,7 +77,8 @@ class OnDownloadProgressChangedEvent extends DownloadCallbackEvent {
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
   bool operator ==(Object other) {
-    if (other is! OnDownloadProgressChangedEvent || other.runtimeType != runtimeType) {
+    if (other is! OnDownloadProgressChangedEvent ||
+        other.runtimeType != runtimeType) {
       return false;
     }
     if (identical(this, other)) {
@@ -90,8 +89,7 @@ class OnDownloadProgressChangedEvent extends DownloadCallbackEvent {
 
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  int get hashCode => Object.hashAll(_toList())
-;
+  int get hashCode => Object.hashAll(_toList());
 }
 
 class OnDownloadFailedEvent extends DownloadCallbackEvent {
@@ -108,15 +106,12 @@ class OnDownloadFailedEvent extends DownloadCallbackEvent {
   String path;
 
   List<Object?> _toList() {
-    return <Object?>[
-      cause,
-      remoteId,
-      path,
-    ];
+    return <Object?>[cause, remoteId, path];
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static OnDownloadFailedEvent decode(Object result) {
     result as List<Object?>;
@@ -141,15 +136,11 @@ class OnDownloadFailedEvent extends DownloadCallbackEvent {
 
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  int get hashCode => Object.hashAll(_toList())
-;
+  int get hashCode => Object.hashAll(_toList());
 }
 
 class OnDownloadCancelledEvent extends DownloadCallbackEvent {
-  OnDownloadCancelledEvent({
-    required this.remoteId,
-    required this.path,
-  });
+  OnDownloadCancelledEvent({required this.remoteId, required this.path});
 
   String remoteId;
 
@@ -157,14 +148,12 @@ class OnDownloadCancelledEvent extends DownloadCallbackEvent {
   String path;
 
   List<Object?> _toList() {
-    return <Object?>[
-      remoteId,
-      path,
-    ];
+    return <Object?>[remoteId, path];
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static OnDownloadCancelledEvent decode(Object result) {
     result as List<Object?>;
@@ -177,7 +166,8 @@ class OnDownloadCancelledEvent extends DownloadCallbackEvent {
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
   bool operator ==(Object other) {
-    if (other is! OnDownloadCancelledEvent || other.runtimeType != runtimeType) {
+    if (other is! OnDownloadCancelledEvent ||
+        other.runtimeType != runtimeType) {
       return false;
     }
     if (identical(this, other)) {
@@ -188,8 +178,7 @@ class OnDownloadCancelledEvent extends DownloadCallbackEvent {
 
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  int get hashCode => Object.hashAll(_toList())
-;
+  int get hashCode => Object.hashAll(_toList());
 }
 
 class OnDownloadCompletedEvent extends DownloadCallbackEvent {
@@ -208,15 +197,12 @@ class OnDownloadCompletedEvent extends DownloadCallbackEvent {
   Uint8List bytes;
 
   List<Object?> _toList() {
-    return <Object?>[
-      remoteId,
-      path,
-      bytes,
-    ];
+    return <Object?>[remoteId, path, bytes];
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static OnDownloadCompletedEvent decode(Object result) {
     result as List<Object?>;
@@ -230,7 +216,8 @@ class OnDownloadCompletedEvent extends DownloadCallbackEvent {
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
   bool operator ==(Object other) {
-    if (other is! OnDownloadCompletedEvent || other.runtimeType != runtimeType) {
+    if (other is! OnDownloadCompletedEvent ||
+        other.runtimeType != runtimeType) {
       return false;
     }
     if (identical(this, other)) {
@@ -241,13 +228,11 @@ class OnDownloadCompletedEvent extends DownloadCallbackEvent {
 
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  int get hashCode => Object.hashAll(_toList())
-;
+  int get hashCode => Object.hashAll(_toList());
 }
 
 /// Generic class that matches all possible events from the native UploadCallback interface.
-sealed class UploadCallbackEvent {
-}
+sealed class UploadCallbackEvent {}
 
 class OnUploadProgressChangedEvent extends UploadCallbackEvent {
   OnUploadProgressChangedEvent({
@@ -269,17 +254,12 @@ class OnUploadProgressChangedEvent extends UploadCallbackEvent {
   String path;
 
   List<Object?> _toList() {
-    return <Object?>[
-      current,
-      total,
-      timestamp,
-      remoteId,
-      path,
-    ];
+    return <Object?>[current, total, timestamp, remoteId, path];
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static OnUploadProgressChangedEvent decode(Object result) {
     result as List<Object?>;
@@ -295,7 +275,8 @@ class OnUploadProgressChangedEvent extends UploadCallbackEvent {
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
   bool operator ==(Object other) {
-    if (other is! OnUploadProgressChangedEvent || other.runtimeType != runtimeType) {
+    if (other is! OnUploadProgressChangedEvent ||
+        other.runtimeType != runtimeType) {
       return false;
     }
     if (identical(this, other)) {
@@ -306,16 +287,11 @@ class OnUploadProgressChangedEvent extends UploadCallbackEvent {
 
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  int get hashCode => Object.hashAll(_toList())
-;
+  int get hashCode => Object.hashAll(_toList());
 }
 
 class OnUploadFailedEvent extends UploadCallbackEvent {
-  OnUploadFailedEvent({
-    this.cause,
-    required this.remoteId,
-    required this.path,
-  });
+  OnUploadFailedEvent({this.cause, required this.remoteId, required this.path});
 
   String? cause;
 
@@ -324,15 +300,12 @@ class OnUploadFailedEvent extends UploadCallbackEvent {
   String path;
 
   List<Object?> _toList() {
-    return <Object?>[
-      cause,
-      remoteId,
-      path,
-    ];
+    return <Object?>[cause, remoteId, path];
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static OnUploadFailedEvent decode(Object result) {
     result as List<Object?>;
@@ -357,15 +330,11 @@ class OnUploadFailedEvent extends UploadCallbackEvent {
 
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  int get hashCode => Object.hashAll(_toList())
-;
+  int get hashCode => Object.hashAll(_toList());
 }
 
 class OnUploadCancelledEvent extends UploadCallbackEvent {
-  OnUploadCancelledEvent({
-    required this.remoteId,
-    required this.path,
-  });
+  OnUploadCancelledEvent({required this.remoteId, required this.path});
 
   String remoteId;
 
@@ -373,14 +342,12 @@ class OnUploadCancelledEvent extends UploadCallbackEvent {
   String path;
 
   List<Object?> _toList() {
-    return <Object?>[
-      remoteId,
-      path,
-    ];
+    return <Object?>[remoteId, path];
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static OnUploadCancelledEvent decode(Object result) {
     result as List<Object?>;
@@ -404,15 +371,11 @@ class OnUploadCancelledEvent extends UploadCallbackEvent {
 
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  int get hashCode => Object.hashAll(_toList())
-;
+  int get hashCode => Object.hashAll(_toList());
 }
 
 class OnUploadCompletedEvent extends UploadCallbackEvent {
-  OnUploadCompletedEvent({
-    required this.remoteId,
-    required this.path,
-  });
+  OnUploadCompletedEvent({required this.remoteId, required this.path});
 
   String remoteId;
 
@@ -420,14 +383,12 @@ class OnUploadCompletedEvent extends UploadCallbackEvent {
   String path;
 
   List<Object?> _toList() {
-    return <Object?>[
-      remoteId,
-      path,
-    ];
+    return <Object?>[remoteId, path];
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static OnUploadCompletedEvent decode(Object result) {
     result as List<Object?>;
@@ -451,30 +412,24 @@ class OnUploadCompletedEvent extends UploadCallbackEvent {
 
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  int get hashCode => Object.hashAll(_toList())
-;
+  int get hashCode => Object.hashAll(_toList());
 }
 
 /// Response from a shell command execution via SMP shell management group.
 class ShellResponse {
-  ShellResponse({
-    required this.output,
-    required this.returnCode,
-  });
+  ShellResponse({required this.output, required this.returnCode});
 
   String output;
 
   int returnCode;
 
   List<Object?> _toList() {
-    return <Object?>[
-      output,
-      returnCode,
-    ];
+    return <Object?>[output, returnCode];
   }
 
   Object encode() {
-    return _toList();  }
+    return _toList();
+  }
 
   static ShellResponse decode(Object result) {
     result as List<Object?>;
@@ -498,10 +453,8 @@ class ShellResponse {
 
   @override
   // ignore: avoid_equals_and_hash_code_on_mutable_classes
-  int get hashCode => Object.hashAll(_toList())
-;
+  int get hashCode => Object.hashAll(_toList());
 }
-
 
 class _PigeonCodec extends StandardMessageCodec {
   const _PigeonCodec();
@@ -510,31 +463,31 @@ class _PigeonCodec extends StandardMessageCodec {
     if (value is int) {
       buffer.putUint8(4);
       buffer.putInt64(value);
-    }    else if (value is OnDownloadProgressChangedEvent) {
+    } else if (value is OnDownloadProgressChangedEvent) {
       buffer.putUint8(129);
       writeValue(buffer, value.encode());
-    }    else if (value is OnDownloadFailedEvent) {
+    } else if (value is OnDownloadFailedEvent) {
       buffer.putUint8(130);
       writeValue(buffer, value.encode());
-    }    else if (value is OnDownloadCancelledEvent) {
+    } else if (value is OnDownloadCancelledEvent) {
       buffer.putUint8(131);
       writeValue(buffer, value.encode());
-    }    else if (value is OnDownloadCompletedEvent) {
+    } else if (value is OnDownloadCompletedEvent) {
       buffer.putUint8(132);
       writeValue(buffer, value.encode());
-    }    else if (value is OnUploadProgressChangedEvent) {
+    } else if (value is OnUploadProgressChangedEvent) {
       buffer.putUint8(133);
       writeValue(buffer, value.encode());
-    }    else if (value is OnUploadFailedEvent) {
+    } else if (value is OnUploadFailedEvent) {
       buffer.putUint8(134);
       writeValue(buffer, value.encode());
-    }    else if (value is OnUploadCancelledEvent) {
+    } else if (value is OnUploadCancelledEvent) {
       buffer.putUint8(135);
       writeValue(buffer, value.encode());
-    }    else if (value is OnUploadCompletedEvent) {
+    } else if (value is OnUploadCompletedEvent) {
       buffer.putUint8(136);
       writeValue(buffer, value.encode());
-    }    else if (value is ShellResponse) {
+    } else if (value is ShellResponse) {
       buffer.putUint8(137);
       writeValue(buffer, value.encode());
     } else {
@@ -545,23 +498,23 @@ class _PigeonCodec extends StandardMessageCodec {
   @override
   Object? readValueOfType(int type, ReadBuffer buffer) {
     switch (type) {
-      case 129: 
+      case 129:
         return OnDownloadProgressChangedEvent.decode(readValue(buffer)!);
-      case 130: 
+      case 130:
         return OnDownloadFailedEvent.decode(readValue(buffer)!);
-      case 131: 
+      case 131:
         return OnDownloadCancelledEvent.decode(readValue(buffer)!);
-      case 132: 
+      case 132:
         return OnDownloadCompletedEvent.decode(readValue(buffer)!);
-      case 133: 
+      case 133:
         return OnUploadProgressChangedEvent.decode(readValue(buffer)!);
-      case 134: 
+      case 134:
         return OnUploadFailedEvent.decode(readValue(buffer)!);
-      case 135: 
+      case 135:
         return OnUploadCancelledEvent.decode(readValue(buffer)!);
-      case 136: 
+      case 136:
         return OnUploadCompletedEvent.decode(readValue(buffer)!);
-      case 137: 
+      case 137:
         return ShellResponse.decode(readValue(buffer)!);
       default:
         return super.readValueOfType(type, buffer);
@@ -569,38 +522,52 @@ class _PigeonCodec extends StandardMessageCodec {
   }
 }
 
-const StandardMethodCodec pigeonMethodCodec = StandardMethodCodec(_PigeonCodec());
+const StandardMethodCodec pigeonMethodCodec = StandardMethodCodec(
+  _PigeonCodec(),
+);
 
-Stream<DownloadCallbackEvent> getFileDownloadEvents( {String instanceName = ''}) {
+Stream<DownloadCallbackEvent> getFileDownloadEvents({
+  String instanceName = '',
+}) {
   if (instanceName.isNotEmpty) {
     instanceName = '.$instanceName';
   }
-  final EventChannel getFileDownloadEventsChannel =
-      EventChannel('dev.flutter.pigeon.mcumgr_flutter.FsManagerEvents.getFileDownloadEvents$instanceName', pigeonMethodCodec);
-  return getFileDownloadEventsChannel.receiveBroadcastStream().map((dynamic event) {
+  final EventChannel getFileDownloadEventsChannel = EventChannel(
+    'dev.flutter.pigeon.mcumgr_flutter.FsManagerEvents.getFileDownloadEvents$instanceName',
+    pigeonMethodCodec,
+  );
+  return getFileDownloadEventsChannel.receiveBroadcastStream().map((
+    dynamic event,
+  ) {
     return event as DownloadCallbackEvent;
   });
 }
-    
-Stream<UploadCallbackEvent> getFileUploadEvents( {String instanceName = ''}) {
+
+Stream<UploadCallbackEvent> getFileUploadEvents({String instanceName = ''}) {
   if (instanceName.isNotEmpty) {
     instanceName = '.$instanceName';
   }
-  final EventChannel getFileUploadEventsChannel =
-      EventChannel('dev.flutter.pigeon.mcumgr_flutter.FsManagerEvents.getFileUploadEvents$instanceName', pigeonMethodCodec);
-  return getFileUploadEventsChannel.receiveBroadcastStream().map((dynamic event) {
+  final EventChannel getFileUploadEventsChannel = EventChannel(
+    'dev.flutter.pigeon.mcumgr_flutter.FsManagerEvents.getFileUploadEvents$instanceName',
+    pigeonMethodCodec,
+  );
+  return getFileUploadEventsChannel.receiveBroadcastStream().map((
+    dynamic event,
+  ) {
     return event as UploadCallbackEvent;
   });
 }
-    
 
 class FsManagerApi {
   /// Constructor for [FsManagerApi].  The [binaryMessenger] named argument is
   /// available for dependency injection.  If it is left null, the default
   /// BinaryMessenger will be used which routes to the host platform.
-  FsManagerApi({BinaryMessenger? binaryMessenger, String messageChannelSuffix = ''})
-      : pigeonVar_binaryMessenger = binaryMessenger,
-        pigeonVar_messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
+  FsManagerApi({
+    BinaryMessenger? binaryMessenger,
+    String messageChannelSuffix = '',
+  }) : pigeonVar_binaryMessenger = binaryMessenger,
+       pigeonVar_messageChannelSuffix =
+           messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
   final BinaryMessenger? pigeonVar_binaryMessenger;
 
   static const MessageCodec<Object?> pigeonChannelCodec = _PigeonCodec();
@@ -611,13 +578,17 @@ class FsManagerApi {
   /// Additional calls to a device that has an ongoing download causes a [PlatformException]
   /// to be thrown.
   Future<void> download(String remoteId, String path) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.mcumgr_flutter.FsManagerApi.download$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
+    final String pigeonVar_channelName =
+        'dev.flutter.pigeon.mcumgr_flutter.FsManagerApi.download$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel =
+        BasicMessageChannel<Object?>(
+          pigeonVar_channelName,
+          pigeonChannelCodec,
+          binaryMessenger: pigeonVar_binaryMessenger,
+        );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
+      <Object?>[remoteId, path],
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[remoteId, path]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -640,13 +611,17 @@ class FsManagerApi {
   /// Additional calls to a device that has an ongoing transfer causes a [PlatformException]
   /// to be thrown.
   Future<void> upload(String remoteId, String path, Uint8List data) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.mcumgr_flutter.FsManagerApi.upload$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
+    final String pigeonVar_channelName =
+        'dev.flutter.pigeon.mcumgr_flutter.FsManagerApi.upload$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel =
+        BasicMessageChannel<Object?>(
+          pigeonVar_channelName,
+          pigeonChannelCodec,
+          binaryMessenger: pigeonVar_binaryMessenger,
+        );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
+      <Object?>[remoteId, path, data],
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[remoteId, path, data]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -664,13 +639,17 @@ class FsManagerApi {
 
   /// Pause an ongoing transfer
   Future<void> pauseTransfer(String remoteId) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.mcumgr_flutter.FsManagerApi.pauseTransfer$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
+    final String pigeonVar_channelName =
+        'dev.flutter.pigeon.mcumgr_flutter.FsManagerApi.pauseTransfer$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel =
+        BasicMessageChannel<Object?>(
+          pigeonVar_channelName,
+          pigeonChannelCodec,
+          binaryMessenger: pigeonVar_binaryMessenger,
+        );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
+      <Object?>[remoteId],
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[remoteId]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -688,13 +667,17 @@ class FsManagerApi {
 
   /// Resume an ongoing transfer
   Future<void> continueTransfer(String remoteId) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.mcumgr_flutter.FsManagerApi.continueTransfer$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
+    final String pigeonVar_channelName =
+        'dev.flutter.pigeon.mcumgr_flutter.FsManagerApi.continueTransfer$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel =
+        BasicMessageChannel<Object?>(
+          pigeonVar_channelName,
+          pigeonChannelCodec,
+          binaryMessenger: pigeonVar_binaryMessenger,
+        );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
+      <Object?>[remoteId],
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[remoteId]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -712,13 +695,17 @@ class FsManagerApi {
 
   /// Cancel an ongoing transfer
   Future<void> cancelTransfer(String remoteId) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.mcumgr_flutter.FsManagerApi.cancelTransfer$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
+    final String pigeonVar_channelName =
+        'dev.flutter.pigeon.mcumgr_flutter.FsManagerApi.cancelTransfer$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel =
+        BasicMessageChannel<Object?>(
+          pigeonVar_channelName,
+          pigeonChannelCodec,
+          binaryMessenger: pigeonVar_binaryMessenger,
+        );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
+      <Object?>[remoteId],
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[remoteId]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -735,13 +722,17 @@ class FsManagerApi {
   }
 
   Future<int> status(String remoteId, String path) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.mcumgr_flutter.FsManagerApi.status$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
+    final String pigeonVar_channelName =
+        'dev.flutter.pigeon.mcumgr_flutter.FsManagerApi.status$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel =
+        BasicMessageChannel<Object?>(
+          pigeonVar_channelName,
+          pigeonChannelCodec,
+          binaryMessenger: pigeonVar_binaryMessenger,
+        );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
+      <Object?>[remoteId, path],
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[remoteId, path]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -764,13 +755,17 @@ class FsManagerApi {
 
   /// Kill the FsManager instance on the native platform.
   Future<void> kill(String remoteId) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.mcumgr_flutter.FsManagerApi.kill$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
+    final String pigeonVar_channelName =
+        'dev.flutter.pigeon.mcumgr_flutter.FsManagerApi.kill$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel =
+        BasicMessageChannel<Object?>(
+          pigeonVar_channelName,
+          pigeonChannelCodec,
+          binaryMessenger: pigeonVar_binaryMessenger,
+        );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
+      <Object?>[remoteId],
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[remoteId]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -791,9 +786,12 @@ class OsManagerApi {
   /// Constructor for [OsManagerApi].  The [binaryMessenger] named argument is
   /// available for dependency injection.  If it is left null, the default
   /// BinaryMessenger will be used which routes to the host platform.
-  OsManagerApi({BinaryMessenger? binaryMessenger, String messageChannelSuffix = ''})
-      : pigeonVar_binaryMessenger = binaryMessenger,
-        pigeonVar_messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
+  OsManagerApi({
+    BinaryMessenger? binaryMessenger,
+    String messageChannelSuffix = '',
+  }) : pigeonVar_binaryMessenger = binaryMessenger,
+       pigeonVar_messageChannelSuffix =
+           messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
   final BinaryMessenger? pigeonVar_binaryMessenger;
 
   static const MessageCodec<Object?> pigeonChannelCodec = _PigeonCodec();
@@ -803,13 +801,17 @@ class OsManagerApi {
   /// Send a reset command to the device via MCUmgr OS management group.
   /// This causes the device to reboot.
   Future<void> reset(String remoteId) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.mcumgr_flutter.OsManagerApi.reset$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
+    final String pigeonVar_channelName =
+        'dev.flutter.pigeon.mcumgr_flutter.OsManagerApi.reset$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel =
+        BasicMessageChannel<Object?>(
+          pigeonVar_channelName,
+          pigeonChannelCodec,
+          binaryMessenger: pigeonVar_binaryMessenger,
+        );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
+      <Object?>[remoteId],
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[remoteId]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -828,13 +830,17 @@ class OsManagerApi {
   /// Kill the OsManager instance on the native platform,
   /// releasing the BLE transport.
   Future<void> kill(String remoteId) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.mcumgr_flutter.OsManagerApi.kill$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
+    final String pigeonVar_channelName =
+        'dev.flutter.pigeon.mcumgr_flutter.OsManagerApi.kill$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel =
+        BasicMessageChannel<Object?>(
+          pigeonVar_channelName,
+          pigeonChannelCodec,
+          binaryMessenger: pigeonVar_binaryMessenger,
+        );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
+      <Object?>[remoteId],
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[remoteId]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -855,9 +861,12 @@ class ShellManagerApi {
   /// Constructor for [ShellManagerApi].  The [binaryMessenger] named argument is
   /// available for dependency injection.  If it is left null, the default
   /// BinaryMessenger will be used which routes to the host platform.
-  ShellManagerApi({BinaryMessenger? binaryMessenger, String messageChannelSuffix = ''})
-      : pigeonVar_binaryMessenger = binaryMessenger,
-        pigeonVar_messageChannelSuffix = messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
+  ShellManagerApi({
+    BinaryMessenger? binaryMessenger,
+    String messageChannelSuffix = '',
+  }) : pigeonVar_binaryMessenger = binaryMessenger,
+       pigeonVar_messageChannelSuffix =
+           messageChannelSuffix.isNotEmpty ? '.$messageChannelSuffix' : '';
   final BinaryMessenger? pigeonVar_binaryMessenger;
 
   static const MessageCodec<Object?> pigeonChannelCodec = _PigeonCodec();
@@ -870,13 +879,17 @@ class ShellManagerApi {
   /// [command] - The shell command string (e.g. "kernel threads").
   /// Returns a [ShellResponse] with the command output and return code.
   Future<ShellResponse> execute(String remoteId, String command) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.mcumgr_flutter.ShellManagerApi.execute$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
+    final String pigeonVar_channelName =
+        'dev.flutter.pigeon.mcumgr_flutter.ShellManagerApi.execute$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel =
+        BasicMessageChannel<Object?>(
+          pigeonVar_channelName,
+          pigeonChannelCodec,
+          binaryMessenger: pigeonVar_binaryMessenger,
+        );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
+      <Object?>[remoteId, command],
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[remoteId, command]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {
@@ -900,13 +913,17 @@ class ShellManagerApi {
   /// Kill the ShellManager instance on the native platform,
   /// releasing the BLE transport.
   Future<void> kill(String remoteId) async {
-    final String pigeonVar_channelName = 'dev.flutter.pigeon.mcumgr_flutter.ShellManagerApi.kill$pigeonVar_messageChannelSuffix';
-    final BasicMessageChannel<Object?> pigeonVar_channel = BasicMessageChannel<Object?>(
-      pigeonVar_channelName,
-      pigeonChannelCodec,
-      binaryMessenger: pigeonVar_binaryMessenger,
+    final String pigeonVar_channelName =
+        'dev.flutter.pigeon.mcumgr_flutter.ShellManagerApi.kill$pigeonVar_messageChannelSuffix';
+    final BasicMessageChannel<Object?> pigeonVar_channel =
+        BasicMessageChannel<Object?>(
+          pigeonVar_channelName,
+          pigeonChannelCodec,
+          binaryMessenger: pigeonVar_binaryMessenger,
+        );
+    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(
+      <Object?>[remoteId],
     );
-    final Future<Object?> pigeonVar_sendFuture = pigeonVar_channel.send(<Object?>[remoteId]);
     final List<Object?>? pigeonVar_replyList =
         await pigeonVar_sendFuture as List<Object?>?;
     if (pigeonVar_replyList == null) {

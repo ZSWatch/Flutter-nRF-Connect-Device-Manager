@@ -14,7 +14,12 @@ class OnDownloadProgressChanged extends DownloadCallback {
   final int current;
   final int total;
   final int timestamp;
-  OnDownloadProgressChanged(super.path, this.current, this.total, this.timestamp);
+  OnDownloadProgressChanged(
+    super.path,
+    this.current,
+    this.total,
+    this.timestamp,
+  );
 }
 
 class OnDownloadFailed extends DownloadCallback {
@@ -73,7 +78,10 @@ abstract class FsManager {
   static final Map<String, FsManager> _cache = <String, FsManager>{};
 
   factory FsManager(String remoteId) {
-    return _cache.putIfAbsent(remoteId, () => _FsManagerImpl._internal(remoteId));
+    return _cache.putIfAbsent(
+      remoteId,
+      () => _FsManagerImpl._internal(remoteId),
+    );
   }
 
   Stream<DownloadCallback> get downloadCallbacks;
@@ -196,18 +204,30 @@ class _FsManagerImpl implements FsManager {
     return _api.kill(remoteId);
   }
 
-  static DownloadCallback _translateDownload(DownloadCallbackEvent event) => switch(event) {
-    OnDownloadProgressChangedEvent() => OnDownloadProgressChanged(event.path, event.current, event.total, event.timestamp),
+  static DownloadCallback _translateDownload(
+    DownloadCallbackEvent event,
+  ) => switch (event) {
+    OnDownloadProgressChangedEvent() => OnDownloadProgressChanged(
+      event.path,
+      event.current,
+      event.total,
+      event.timestamp,
+    ),
     OnDownloadFailedEvent() => OnDownloadFailed(event.path, event.cause),
     OnDownloadCancelledEvent() => OnDownloadCancelled(event.path),
     OnDownloadCompletedEvent() => OnDownloadCompleted(event.path, event.bytes),
   };
 
-  static UploadCallback _translateUpload(UploadCallbackEvent event) => switch(event) {
-    OnUploadProgressChangedEvent() => OnUploadProgressChanged(event.path, event.current, event.total, event.timestamp),
-    OnUploadFailedEvent() => OnUploadFailed(event.path, event.cause),
-    OnUploadCancelledEvent() => OnUploadCancelled(event.path),
-    OnUploadCompletedEvent() => OnUploadCompleted(event.path),
-  };
+  static UploadCallback _translateUpload(UploadCallbackEvent event) =>
+      switch (event) {
+        OnUploadProgressChangedEvent() => OnUploadProgressChanged(
+          event.path,
+          event.current,
+          event.total,
+          event.timestamp,
+        ),
+        OnUploadFailedEvent() => OnUploadFailed(event.path, event.cause),
+        OnUploadCancelledEvent() => OnUploadCancelled(event.path),
+        OnUploadCompletedEvent() => OnUploadCompleted(event.path),
+      };
 }
-

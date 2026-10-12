@@ -20,7 +20,9 @@ class FirmwareUpgradeState {
   static const reset = FirmwareUpgradeState("Reset");
   static const confirm = FirmwareUpgradeState("Confirm");
   static const success = FirmwareUpgradeState("Success");
-  static const requestMcuMgrParameters = FirmwareUpgradeState("Request McuMgr parameters");
+  static const requestMcuMgrParameters = FirmwareUpgradeState(
+    "Request McuMgr parameters",
+  );
   static const eraseAppSettings = FirmwareUpgradeState("Erase app settings");
   static const bootloaderInfo = FirmwareUpgradeState("Bootloader info");
 
@@ -33,7 +35,7 @@ class FirmwareUpgradeState {
     FirmwareUpgradeState.success,
     FirmwareUpgradeState.requestMcuMgrParameters,
     FirmwareUpgradeState.eraseAppSettings,
-    FirmwareUpgradeState.bootloaderInfo
+    FirmwareUpgradeState.bootloaderInfo,
   ];
 
   @override

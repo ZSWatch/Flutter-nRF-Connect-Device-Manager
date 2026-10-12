@@ -26,17 +26,17 @@ class McuMgrLogCategory {
   static const dfu = McuMgrLogCategory._value("DFU");
 
   static List<McuMgrLogCategory> get values => [
-        transport,
-        config,
-        crash,
-        defaultLevel,
-        fs,
-        image,
-        log,
-        runTest,
-        stats,
-        dfu
-      ];
+    transport,
+    config,
+    crash,
+    defaultLevel,
+    fs,
+    image,
+    log,
+    runTest,
+    stats,
+    dfu,
+  ];
 
   @override
   String toString() {
@@ -57,14 +57,7 @@ class McuMgrLogLevel {
   static const error = McuMgrLogLevel._value(20);
 
   static List<McuMgrLogLevel> get values {
-    return [
-      debug,
-      verbose,
-      info,
-      application,
-      warning,
-      error
-    ];
+    return [debug, verbose, info, application, warning, error];
   }
 
   String get shortName {

@@ -17,13 +17,14 @@ class PeripheralSelect extends StatelessWidget {
         if (updateParameters.peripheral != null)
           Text(updateParameters.peripheral!.name),
         ElevatedButton(
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => PeripheralList()),
-              );
-            },
-            child: Text('Select Peripheral')),
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => PeripheralList()),
+            );
+          },
+          child: Text('Select Peripheral'),
+        ),
       ],
     );
   }

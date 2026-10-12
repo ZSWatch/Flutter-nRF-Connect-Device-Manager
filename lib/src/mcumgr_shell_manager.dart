@@ -30,7 +30,10 @@ class ShellManager {
   /// Returns a [ShellCommandResult] with the command output and return code.
   ///
   /// Throws a [PlatformException] if the SMP service is not available.
-  static Future<ShellCommandResult> execute(String deviceId, String command) async {
+  static Future<ShellCommandResult> execute(
+    String deviceId,
+    String command,
+  ) async {
     final response = await _api.execute(deviceId, command);
     return ShellCommandResult(
       output: response.output,

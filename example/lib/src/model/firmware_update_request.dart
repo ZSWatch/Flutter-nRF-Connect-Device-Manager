@@ -7,20 +7,14 @@ class FirmwareUpdateRequest {
   SelectedFirmware? firmware;
   SelectedPeripheral? peripheral;
 
-  FirmwareUpdateRequest({
-    this.firmware,
-    this.peripheral,
-  });
+  FirmwareUpdateRequest({this.firmware, this.peripheral});
 }
 
 class SingleImageFirmwareUpdateRequest extends FirmwareUpdateRequest {
   Uint8List? get firmwareImage =>
       firmware is LocalFirmware ? (firmware as LocalFirmware).data : null;
 
-  SingleImageFirmwareUpdateRequest({
-    super.peripheral,
-    super.firmware,
-  });
+  SingleImageFirmwareUpdateRequest({super.peripheral, super.firmware});
 }
 
 class MultiImageFirmwareUpdateRequest extends FirmwareUpdateRequest {
@@ -29,8 +23,12 @@ class MultiImageFirmwareUpdateRequest extends FirmwareUpdateRequest {
 
   RemoteFirmware? get remoteFirmware => firmware as RemoteFirmware?;
 
-  MultiImageFirmwareUpdateRequest(
-      {this.zipFile, this.firmwareImages, super.peripheral, super.firmware});
+  MultiImageFirmwareUpdateRequest({
+    this.zipFile,
+    this.firmwareImages,
+    super.peripheral,
+    super.firmware,
+  });
 }
 
 class SelectedFirmware {
@@ -59,29 +57,19 @@ class RemoteFirmware extends SelectedFirmware {
   }
 }
 
-enum FirmwareType {
-  singleImage,
-  multiImage,
-}
+enum FirmwareType { singleImage, multiImage }
 
 class LocalFirmware extends SelectedFirmware {
   final String name;
   final Uint8List data;
   final FirmwareType type;
 
-  LocalFirmware({
-    required this.name,
-    required this.data,
-    required this.type,
-  });
+  LocalFirmware({required this.name, required this.data, required this.type});
 }
 
 class SelectedPeripheral {
   final String name;
   final String identifier;
 
-  SelectedPeripheral({
-    required this.name,
-    required this.identifier,
-  });
+  SelectedPeripheral({required this.name, required this.identifier});
 }

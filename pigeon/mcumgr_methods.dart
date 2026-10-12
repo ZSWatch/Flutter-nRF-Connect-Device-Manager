@@ -1,16 +1,18 @@
 import 'package:pigeon/pigeon.dart';
 
-@ConfigurePigeon(PigeonOptions(
-  dartOut: 'lib/src/messages.g.dart',
-  dartOptions: DartOptions(),
-  kotlinOut: 'android/src/main/kotlin/no/nordicsemi/android/mcumgr_flutter/Messages.g.kt',
-  kotlinOptions: KotlinOptions(
-      package: "no.nordicsemi.android.mcumgr_flutter"
+@ConfigurePigeon(
+  PigeonOptions(
+    dartOut: 'lib/src/messages.g.dart',
+    dartOptions: DartOptions(),
+    kotlinOut:
+        'android/src/main/kotlin/no/nordicsemi/android/mcumgr_flutter/Messages.g.kt',
+    kotlinOptions: KotlinOptions(
+      package: "no.nordicsemi.android.mcumgr_flutter",
+    ),
+    swiftOut: 'ios/Classes/Messages.g.swift',
+    swiftOptions: SwiftOptions(),
   ),
-  swiftOut: 'ios/Classes/Messages.g.swift',
-  swiftOptions: SwiftOptions(),
-))
-
+)
 /// Generic class that matches all possible events from the native DownloadCallback interface.
 sealed class DownloadCallbackEvent {}
 
@@ -20,18 +22,29 @@ class OnDownloadProgressChangedEvent extends DownloadCallbackEvent {
   final int timestamp;
   final String remoteId;
   final String path;
-  OnDownloadProgressChangedEvent({required this.current, required this.total, required this.timestamp, required this.remoteId, required this.path});
+  OnDownloadProgressChangedEvent({
+    required this.current,
+    required this.total,
+    required this.timestamp,
+    required this.remoteId,
+    required this.path,
+  });
 }
 
 class OnDownloadFailedEvent extends DownloadCallbackEvent {
   final String? cause;
   final String remoteId;
   final String path;
-  OnDownloadFailedEvent({required this.cause, required this.remoteId, required this.path});
+  OnDownloadFailedEvent({
+    required this.cause,
+    required this.remoteId,
+    required this.path,
+  });
 }
 
 class OnDownloadCancelledEvent extends DownloadCallbackEvent {
   final String remoteId;
+
   /// Needed to track the event source coming through a single stream.
   final String path;
 
@@ -40,12 +53,18 @@ class OnDownloadCancelledEvent extends DownloadCallbackEvent {
 
 class OnDownloadCompletedEvent extends DownloadCallbackEvent {
   final String remoteId;
+
   /// Needed to track the event source coming through a single stream.
   final String path;
+
   /// The raw bytes of the file.
   final Uint8List bytes;
 
-  OnDownloadCompletedEvent(this.bytes, {required this.remoteId, required this.path});
+  OnDownloadCompletedEvent(
+    this.bytes, {
+    required this.remoteId,
+    required this.path,
+  });
 }
 
 /// Generic class that matches all possible events from the native UploadCallback interface.
@@ -57,18 +76,29 @@ class OnUploadProgressChangedEvent extends UploadCallbackEvent {
   final int timestamp;
   final String remoteId;
   final String path;
-  OnUploadProgressChangedEvent({required this.current, required this.total, required this.timestamp, required this.remoteId, required this.path});
+  OnUploadProgressChangedEvent({
+    required this.current,
+    required this.total,
+    required this.timestamp,
+    required this.remoteId,
+    required this.path,
+  });
 }
 
 class OnUploadFailedEvent extends UploadCallbackEvent {
   final String? cause;
   final String remoteId;
   final String path;
-  OnUploadFailedEvent({required this.cause, required this.remoteId, required this.path});
+  OnUploadFailedEvent({
+    required this.cause,
+    required this.remoteId,
+    required this.path,
+  });
 }
 
 class OnUploadCancelledEvent extends UploadCallbackEvent {
   final String remoteId;
+
   /// Needed to track the event source coming through a single stream.
   final String path;
 
@@ -77,6 +107,7 @@ class OnUploadCancelledEvent extends UploadCallbackEvent {
 
 class OnUploadCompletedEvent extends UploadCallbackEvent {
   final String remoteId;
+
   /// Needed to track the event source coming through a single stream.
   final String path;
 
@@ -87,7 +118,7 @@ class OnUploadCompletedEvent extends UploadCallbackEvent {
 abstract class FsManagerEvents {
   /// Get a stream of all file download events.
   DownloadCallbackEvent getFileDownloadEvents();
-  
+
   /// Get a stream of all file upload events.
   UploadCallbackEvent getFileUploadEvents();
 }

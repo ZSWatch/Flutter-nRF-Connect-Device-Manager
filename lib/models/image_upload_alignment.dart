@@ -7,5 +7,7 @@ class ImageUploadAlignment {
   static const ImageUploadAlignment twoByte = const ImageUploadAlignment._(2);
   static const ImageUploadAlignment fourByte = const ImageUploadAlignment._(4);
   static const ImageUploadAlignment eightByte = const ImageUploadAlignment._(8);
-  static const ImageUploadAlignment sixteenByte = const ImageUploadAlignment._(16);
+  static const ImageUploadAlignment sixteenByte = const ImageUploadAlignment._(
+    16,
+  );
 }

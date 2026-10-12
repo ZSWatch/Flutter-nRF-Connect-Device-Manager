@@ -8,10 +8,9 @@ class LoggerScreen extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-        appBar: AppBar(
-          title: Text('Log'),
-        ),
-        body: _logFutureBuilder());
+      appBar: AppBar(title: Text('Log')),
+      body: _logFutureBuilder(),
+    );
   }
 
   Widget _logFutureBuilder() {
@@ -19,9 +18,10 @@ class LoggerScreen extends StatelessWidget {
       future: logger.readLogs(),
       builder: (context, snapshot) {
         if (snapshot.hasData) {
-          final messages = (snapshot.data as List<McuLogMessage>)
-              .where((element) => element.level.rawValue >= 1)
-              .toList();
+          final messages =
+              (snapshot.data as List<McuLogMessage>)
+                  .where((element) => element.level.rawValue >= 1)
+                  .toList();
           return _messageList(messages);
         } else if (snapshot.hasError) {
           return Text(snapshot.error.toString());
@@ -32,14 +32,15 @@ class LoggerScreen extends StatelessWidget {
   }
 
   Widget _messageList(List<McuLogMessage> messages) => ListView.builder(
-      itemCount: messages.length,
-      itemBuilder: (context, index) {
-        final message = messages[index];
-        return Text(
-          message.message,
-          style: TextStyle(color: _colorForLevel(message.level)),
-        );
-      });
+    itemCount: messages.length,
+    itemBuilder: (context, index) {
+      final message = messages[index];
+      return Text(
+        message.message,
+        style: TextStyle(color: _colorForLevel(message.level)),
+      );
+    },
+  );
 
   Color _colorForLevel(McuMgrLogLevel level) {
     switch (level) {

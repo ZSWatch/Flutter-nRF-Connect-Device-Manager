@@ -33,18 +33,16 @@ class UpdateStepView extends StatelessWidget {
             return Column(
               children: [
                 for (var state in state.history)
-                  Row(
-                    children: [
-                      _stateIcon(state),
-                      Text(state.stage),
-                    ],
-                  ),
+                  Row(children: [_stateIcon(state), Text(state.stage)]),
                 if (state.currentState != null)
                   Row(
                     children: [
                       SizedBox(width: 3),
                       CircularProgressIndicator(
-                        constraints: BoxConstraints(minWidth: 17.0, minHeight: 17.0),
+                        constraints: BoxConstraints(
+                          minWidth: 17.0,
+                          minHeight: 17.0,
+                        ),
                         strokeWidth: 2.0,
                       ),
                       SizedBox(width: 3),
@@ -53,15 +51,19 @@ class UpdateStepView extends StatelessWidget {
                   ),
                 if (state.isComplete && state.updateManager?.logger != null)
                   ElevatedButton(
-                      onPressed: () {
-                        Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                                builder: (context) => LoggerScreen(
-                                      logger: state.updateManager!.logger,
-                                    )));
-                      },
-                      child: Text('Show Log')),
+                    onPressed: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder:
+                              (context) => LoggerScreen(
+                                logger: state.updateManager!.logger,
+                              ),
+                        ),
+                      );
+                    },
+                    child: Text('Show Log'),
+                  ),
                 if (state.isComplete)
                   ElevatedButton(
                     onPressed: () {

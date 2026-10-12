@@ -1,22 +1,27 @@
 import 'package:flutter/services.dart';
 
 const _namespace = "mcumgr_flutter";
-const MethodChannel methodChannel =
-    const MethodChannel(_namespace + '/method_channel');
+const MethodChannel methodChannel = const MethodChannel(
+  _namespace + '/method_channel',
+);
 
 class UpdateManagerChannel {
-  static const EventChannel progressStream =
-      const EventChannel(_namespace + '/update_progress_event_channel');
-  static const EventChannel updateStateStream =
-      const EventChannel(_namespace + '/update_state_event_channel');
-  static const EventChannel updateInProgressChannel =
-      const EventChannel(_namespace + '/update_in_progress_channel');
+  static const EventChannel progressStream = const EventChannel(
+    _namespace + '/update_progress_event_channel',
+  );
+  static const EventChannel updateStateStream = const EventChannel(
+    _namespace + '/update_state_event_channel',
+  );
+  static const EventChannel updateInProgressChannel = const EventChannel(
+    _namespace + '/update_in_progress_channel',
+  );
 }
 
 class UpdateLoggerChannel {
   // channel for log messages
-  static const EventChannel logEventChannel =
-      const EventChannel(_namespace + '/log_event_channel');
+  static const EventChannel logEventChannel = const EventChannel(
+    _namespace + '/log_event_channel',
+  );
 }
 
 /// Channel methods related to UpdateManager
@@ -27,11 +32,13 @@ class UpdateManagerMethod {
 
   String get rawValue => _rawValue;
 
-  static const initializeUpdateManager =
-      const UpdateManagerMethod('initializeUpdateManager');
+  static const initializeUpdateManager = const UpdateManagerMethod(
+    'initializeUpdateManager',
+  );
   static const update = const UpdateManagerMethod('update');
-  static const updateSingleImage =
-      const UpdateManagerMethod('updateSingleImage');
+  static const updateSingleImage = const UpdateManagerMethod(
+    'updateSingleImage',
+  );
   static const pause = const UpdateManagerMethod('pause');
   static const resume = const UpdateManagerMethod('resume');
   static const isPaused = const UpdateManagerMethod('isPaused');

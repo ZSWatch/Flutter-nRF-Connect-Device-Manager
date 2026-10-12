@@ -35,7 +35,7 @@ extension ProtoUpdateStateToModel
       case (ProtoUpdateStateChanges_FirmwareUpgradeState.SUCCESS):
         return FirmwareUpgradeState.success;
       case (ProtoUpdateStateChanges_FirmwareUpgradeState
-            .REQUEST_MCU_MGR_PARAMETERS):
+          .REQUEST_MCU_MGR_PARAMETERS):
         return FirmwareUpgradeState.requestMcuMgrParameters;
       case (ProtoUpdateStateChanges_FirmwareUpgradeState.ERASE_APP_SETTINGS):
         return FirmwareUpgradeState.eraseAppSettings;
@@ -50,10 +50,11 @@ extension ProtoUpdateStateToModel
 extension ProtoLogMessageToModel on ProtoLogMessage {
   McuLogMessage convent() {
     return McuLogMessage(
-        message,
-        conventCategory(this.logCategory),
-        conventLevel(this.logLevel),
-        DateTime.fromMillisecondsSinceEpoch(this.logDateTime.toInt()));
+      message,
+      conventCategory(this.logCategory),
+      conventLevel(this.logLevel),
+      DateTime.fromMillisecondsSinceEpoch(this.logDateTime.toInt()),
+    );
   }
 
   McuMgrLogLevel conventLevel(ProtoLogMessage_LogLevel level) =>
@@ -158,7 +159,7 @@ extension ProtoFirmwareUpgradeConfiguration_FirmwareUpgradeModeToModel
       case ProtoFirmwareUpgradeConfiguration_FirmwareUpgradeMode.TEST_ONLY:
         return FirmwareUpgradeMode.testOnly;
       case ProtoFirmwareUpgradeConfiguration_FirmwareUpgradeMode
-            .TEST_AND_CONFIRM:
+          .TEST_AND_CONFIRM:
         return FirmwareUpgradeMode.testAndConfirm;
       case ProtoFirmwareUpgradeConfiguration_FirmwareUpgradeMode.UPLOAD_ONLY:
         return FirmwareUpgradeMode.uploadOnly;
@@ -224,58 +225,57 @@ extension FirmwareUpgradeConfigurationToModel on FirmwareUpgradeConfiguration {
 extension ProtoFirmwareUpgradeConfigurationToModel
     on ProtoFirmwareUpgradeConfiguration {
   FirmwareUpgradeConfiguration convert() => FirmwareUpgradeConfiguration(
-        estimatedSwapTime:
-            Duration(milliseconds: this.estimatedSwapTimeMs as int),
-        eraseAppSettings: this.eraseAppSettings,
-        pipelineDepth: this.pipelineDepth as int,
-        byteAlignment: this.byteAlignment.convent(),
-        reassemblyBufferSize: this.reassemblyBufferSize as int,
-        firmwareUpgradeMode: this.firmwareUpgradeMode.convent(),
-      );
+    estimatedSwapTime: Duration(milliseconds: this.estimatedSwapTimeMs as int),
+    eraseAppSettings: this.eraseAppSettings,
+    pipelineDepth: this.pipelineDepth as int,
+    byteAlignment: this.byteAlignment.convent(),
+    reassemblyBufferSize: this.reassemblyBufferSize as int,
+    firmwareUpgradeMode: this.firmwareUpgradeMode.convent(),
+  );
 }
 
 extension ImageProtoToModel on ProtoImage {
   Image convert() => Image(
-        image: this.image,
-        slot: this.slot,
-        hash: Uint8List.fromList(this.hash),
-        data: Uint8List.fromList(this.data),
-      );
+    image: this.image,
+    slot: this.slot,
+    hash: Uint8List.fromList(this.hash),
+    data: Uint8List.fromList(this.data),
+  );
 }
 
 extension ImageModelToProto on Image {
   ProtoImage toProto() => ProtoImage(
-        image: this.image,
-        slot: this.slot,
-        hash: this.hash?.toList(),
-        data: this.data.toList(),
-      );
+    image: this.image,
+    slot: this.slot,
+    hash: this.hash?.toList(),
+    data: this.data.toList(),
+  );
 }
 
 extension ImageSlotProtoToModel on ProtoImageSlot {
   ImageSlot convert() => ImageSlot(
-        image: this.image.toInt(),
-        slot: this.slot.toInt(),
-        version: this.version,
-        hash: Uint8List.fromList(this.hash),
-        bootable: this.bootable,
-        pending: this.pending,
-        confirmed: this.confirmed,
-        active: this.active,
-        permanent: this.permanent,
-      );
+    image: this.image.toInt(),
+    slot: this.slot.toInt(),
+    version: this.version,
+    hash: Uint8List.fromList(this.hash),
+    bootable: this.bootable,
+    pending: this.pending,
+    confirmed: this.confirmed,
+    active: this.active,
+    permanent: this.permanent,
+  );
 }
 
 extension ImageSlotModelToProto on ImageSlot {
   ProtoImageSlot toProto() => ProtoImageSlot(
-        image: Int64(this.image),
-        slot: Int64(this.slot),
-        version: this.version,
-        hash: this.hash.toList(),
-        bootable: this.bootable,
-        pending: this.pending,
-        confirmed: this.confirmed,
-        active: this.active,
-        permanent: this.permanent,
-      );
+    image: Int64(this.image),
+    slot: Int64(this.slot),
+    version: this.version,
+    hash: this.hash.toList(),
+    bootable: this.bootable,
+    pending: this.pending,
+    confirmed: this.confirmed,
+    active: this.active,
+    permanent: this.permanent,
+  );
 }

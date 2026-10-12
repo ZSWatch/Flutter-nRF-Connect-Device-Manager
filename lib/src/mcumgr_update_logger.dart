@@ -35,14 +35,19 @@ class McuMgrLogger extends FirmwareUpdateLogger {
     await methodChannel.invoke(UpdateLoggerMethod.clearLogs, _deviceId);
   }
 
-  Future<List<McuLogMessage>> _retrieveLogs(UpdateLoggerMethod method,
-      {bool clearLogs = false}) async {
-    final readLogCallArguments = ProtoReadLogCallArguments()
-      ..uuid = _deviceId
-      ..clearLogs = clearLogs;
+  Future<List<McuLogMessage>> _retrieveLogs(
+    UpdateLoggerMethod method, {
+    bool clearLogs = false,
+  }) async {
+    final readLogCallArguments =
+        ProtoReadLogCallArguments()
+          ..uuid = _deviceId
+          ..clearLogs = clearLogs;
 
     final data = await methodChannel.invoke(
-        UpdateLoggerMethod.readLogs, readLogCallArguments.writeToBuffer());
+      UpdateLoggerMethod.readLogs,
+      readLogCallArguments.writeToBuffer(),
+    );
 
     final proto = ProtoReadMessagesResponse.fromBuffer(data);
     return proto.protoLogMessage.map((e) => e.convent()).toList();
@@ -54,17 +59,20 @@ class McuMgrLogger extends FirmwareUpdateLogger {
         .map((event) => ProtoLogMessageStreamArg.fromBuffer(event))
         .where((event) => event.uuid == _deviceId)
         .listen((data) {
-      if (data.hasError() && !_logMessageStreamController.isClosed) {
-        _logMessageStreamController.addError(data.error.localizedDescription);
-      }
+          if (data.hasError() && !_logMessageStreamController.isClosed) {
+            _logMessageStreamController.addError(
+              data.error.localizedDescription,
+            );
+          }
 
-      if (data.done) {
-        _logMessageStreamController.close();
-      }
+          if (data.done) {
+            _logMessageStreamController.close();
+          }
 
-      if (data.hasProtoLogMessage() && !_logMessageStreamController.isClosed) {
-        _logMessageStreamController.add(data.protoLogMessage.convent());
-      }
-    });
+          if (data.hasProtoLogMessage() &&
+              !_logMessageStreamController.isClosed) {
+            _logMessageStreamController.add(data.protoLogMessage.convent());
+          }
+        });
   }
 }
