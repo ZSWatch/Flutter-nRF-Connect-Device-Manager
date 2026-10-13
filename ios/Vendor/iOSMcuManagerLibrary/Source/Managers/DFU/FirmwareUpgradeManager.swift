@@ -30,6 +30,7 @@ public class FirmwareUpgradeManager: FirmwareUpgradeController, ConnectionObserv
     
     private var state: FirmwareUpgradeState
     private var paused: Bool
+    private var terminallyAborted = false
     
     /// Logger delegate may be used to obtain logs.
     public weak var logDelegate: McuMgrLogDelegate? {
@@ -94,6 +95,7 @@ public class FirmwareUpgradeManager: FirmwareUpgradeController, ConnectionObserv
     /// - parameter images: An Array of (`ImageManager.Image`) to upload.
     /// - parameter configuration: Fine-tuning of details regarding the upgrade process.
     public func start(images: [ImageManager.Image], using configuration: FirmwareUpgradeConfiguration = FirmwareUpgradeConfiguration()) {
+        guard !terminallyAborted else { return }
         objc_sync_enter(self)
         defer {
             objc_sync_exit(self)
@@ -126,6 +128,7 @@ public class FirmwareUpgradeManager: FirmwareUpgradeController, ConnectionObserv
      - parameter data: The bytes of the resource itself.
      */
     public func uploadResource(_ resource: FirmwareUpgradeResource, data: Data) {
+        guard !terminallyAborted else { return }
         objc_sync_enter(self)
         suitManager.uploadResource(data)
         objc_sync_exit(self)
@@ -142,6 +145,23 @@ public class FirmwareUpgradeManager: FirmwareUpgradeController, ConnectionObserv
             paused = false
         }
         objc_sync_exit(self)
+    }
+
+    /// Terminal app-owner teardown, distinct from upload-only user cancellation.
+    /// The owner must invalidate its transport first to fence admitted/queued IO.
+    /// A new manager is required for a later operation.
+    public func abort(with error: Error) {
+        objc_sync_enter(self)
+        defer { objc_sync_exit(self) }
+        guard !terminallyAborted else { return }
+        terminallyAborted = true
+        imageManager.transport.removeObserver(self)
+        imageManager.pauseUpload()
+        imageManager.cancelUpload()
+        suitManager.cancel()
+        fail(error: error)
+        // Release even if a cancelled transport never delivers a callback.
+        cyclicReferenceHolder = nil
     }
     
     public func pause() {
@@ -160,6 +180,7 @@ public class FirmwareUpgradeManager: FirmwareUpgradeController, ConnectionObserv
     }
     
     public func resume() {
+        guard !terminallyAborted else { return }
         objc_sync_enter(self)
         if paused {
             paused = false
@@ -185,6 +206,7 @@ public class FirmwareUpgradeManager: FirmwareUpgradeController, ConnectionObserv
     //**************************************************************************
     
     private func objc_sync_setState(_ state: FirmwareUpgradeState) {
+        guard !terminallyAborted else { return }
         objc_sync_enter(self)
         let previousState = self.state
         self.state = state
@@ -197,6 +219,7 @@ public class FirmwareUpgradeManager: FirmwareUpgradeController, ConnectionObserv
     }
     
     private func requestMcuMgrParameters() {
+        guard !terminallyAborted else { return }
         objc_sync_setState(.requestMcuMgrParameters)
         if !paused {
             log(msg: "Requesting McuMgr Parameters...", atLevel: .verbose)
@@ -205,6 +228,7 @@ public class FirmwareUpgradeManager: FirmwareUpgradeController, ConnectionObserv
     }
     
     private func bootloaderInfo() {
+        guard !terminallyAborted else { return }
         objc_sync_setState(.bootloaderInfo)
         if !paused {
             log(msg: "Requesting Bootloader Info...", atLevel: .verbose)
@@ -213,6 +237,7 @@ public class FirmwareUpgradeManager: FirmwareUpgradeController, ConnectionObserv
     }
     
     private func bootloaderMode() {
+        guard !terminallyAborted else { return }
         objc_sync_setState(.bootloaderInfo)
         if !paused {
             log(msg: "Requesting Bootloader Mode...", atLevel: .verbose)
@@ -221,6 +246,7 @@ public class FirmwareUpgradeManager: FirmwareUpgradeController, ConnectionObserv
     }
     
     private func validate() {
+        guard !terminallyAborted else { return }
         objc_sync_setState(.validate)
         if !paused {
             log(msg: "Sending Image List command...", atLevel: .verbose)
@@ -229,6 +255,7 @@ public class FirmwareUpgradeManager: FirmwareUpgradeController, ConnectionObserv
     }
     
     private func upload() {
+        guard !terminallyAborted else { return }
         objc_sync_setState(.upload)
         if !paused {
             let imagesToUpload = images
@@ -254,6 +281,7 @@ public class FirmwareUpgradeManager: FirmwareUpgradeController, ConnectionObserv
     }
     
     private func test(_ image: FirmwareUpgradeImage) {
+        guard !terminallyAborted else { return }
         objc_sync_setState(.test)
         if !paused {
             log(msg: "Sending Image Test command for image \(image.image) (slot: \(image.slot))...", atLevel: .verbose)
@@ -262,6 +290,7 @@ public class FirmwareUpgradeManager: FirmwareUpgradeController, ConnectionObserv
     }
     
     private func confirm(_ image: FirmwareUpgradeImage) {
+        guard !terminallyAborted else { return }
         objc_sync_setState(.confirm)
         if !paused {
             log(msg: "Sending Image Confirm command to image \(image.image) (slot \(image.slot))...", atLevel: .verbose)
@@ -270,6 +299,7 @@ public class FirmwareUpgradeManager: FirmwareUpgradeController, ConnectionObserv
     }
     
     private func confirmAsSUIT() {
+        guard !terminallyAborted else { return }
         objc_sync_setState(.confirm)
         if !paused {
             log(msg: "Sending single Confirm command for SUIT upload (no Hash) via McuBoot...", atLevel: .verbose)
@@ -278,12 +308,14 @@ public class FirmwareUpgradeManager: FirmwareUpgradeController, ConnectionObserv
     }
     
     private func eraseAppSettings() {
+        guard !terminallyAborted else { return }
         objc_sync_setState(.eraseAppSettings)
         log(msg: "Erasing app settings...", atLevel: .verbose)
         basicManager.eraseAppSettings(callback: eraseAppSettingsCallback)
     }
     
     private func reset() {
+        guard !terminallyAborted else { return }
         objc_sync_setState(.reset)
         if !paused {
             log(msg: "Sending Reset command...", atLevel: .verbose)
@@ -297,6 +329,7 @@ public class FirmwareUpgradeManager: FirmwareUpgradeController, ConnectionObserv
      are tested, then Reset, and now we need to Confirm all Images.
      */
     private func testAndConfirmAfterReset() {
+        guard !terminallyAborted else { return }
         if let untestedImage = images.first(where: { $0.uploaded && !$0.tested }) {
             self.fail(error: FirmwareUpgradeError.untestedImageFound(image: untestedImage.image, slot: untestedImage.slot))
             return
@@ -315,6 +348,7 @@ public class FirmwareUpgradeManager: FirmwareUpgradeController, ConnectionObserv
     }
     
     private func success() {
+        guard !terminallyAborted else { return }
         objc_sync_setState(.success)
         
         objc_sync_enter(self)
@@ -338,7 +372,8 @@ public class FirmwareUpgradeManager: FirmwareUpgradeController, ConnectionObserv
         }
         
         var errorOverride = error
-        if let mcuMgrError = error as? McuMgrError,
+        if let configuration = configuration,
+           let mcuMgrError = error as? McuMgrError,
            case let McuMgrError.returnCode(returnCode) = mcuMgrError {
             if configuration.bootloaderMode.isBareMetal, returnCode == .unsupported {
                 errorOverride = FirmwareUpgradeError.resetIntoBootloaderModeNeeded
@@ -356,6 +391,7 @@ public class FirmwareUpgradeManager: FirmwareUpgradeController, ConnectionObserv
     }
     
     private func resumeFromCurrentState() {
+        guard !terminallyAborted else { return }
         objc_sync_enter(self)
         defer {
             objc_sync_exit(self)
@@ -691,6 +727,7 @@ public class FirmwareUpgradeManager: FirmwareUpgradeController, ConnectionObserv
     }
     
     private func listConfirm(image: McuMgrImageStateResponse.ImageSlot) {
+        guard !terminallyAborted else { return }
         imageManager.confirm(hash: image.hash) { [weak self] response, error in
             guard let self = self else {
                 return
@@ -934,6 +971,7 @@ public class FirmwareUpgradeManager: FirmwareUpgradeController, ConnectionObserv
     }
     
     private func finishedEraseAppSettings() {
+        guard !terminallyAborted else { return }
         // Set to false so uploadDidFinish() doesn't loop forever.
         self.configuration.eraseAppSettings = false
         self.uploadDidFinish()
@@ -970,6 +1008,7 @@ public class FirmwareUpgradeManager: FirmwareUpgradeController, ConnectionObserv
     }
     
     public func transport(_ transport: McuMgrTransport, didChangeStateTo state: McuMgrTransportState) {
+        guard !terminallyAborted else { return }
         transport.removeObserver(self)
         // Disregard connected state.
         guard state == .disconnected else {
@@ -1005,6 +1044,7 @@ public class FirmwareUpgradeManager: FirmwareUpgradeController, ConnectionObserv
     
     /// Reconnect to the device and continue the
     private func reconnect() {
+        guard !terminallyAborted else { return }
         imageManager.transport.connect { [weak self] result in
             guard let self = self else {
                 return
@@ -1129,6 +1169,7 @@ public struct FirmwareUpgradeConfiguration: Codable {
 extension FirmwareUpgradeManager: ImageUploadDelegate {
     
     public func uploadProgressDidChange(bytesSent: Int, imageSize: Int, timestamp: Date) {
+        guard !terminallyAborted else { return }
         if bytesSent == imageSize {
             // An Image was sent. Mark as uploaded.
             if let image = self.images.first(where: { !$0.uploaded && $0.data.count == imageSize }) {
@@ -1142,11 +1183,13 @@ extension FirmwareUpgradeManager: ImageUploadDelegate {
     }
     
     public func uploadDidFail(with error: Error) {
+        guard !terminallyAborted else { return }
         // If the upload fails, fail the upgrade.
         fail(error: error)
     }
     
     public func uploadDidCancel() {
+        guard !terminallyAborted else { return }
         DispatchQueue.main.async { [weak self] in
             self?.delegate?.upgradeDidCancel(state: .none)
         }
@@ -1156,6 +1199,7 @@ extension FirmwareUpgradeManager: ImageUploadDelegate {
     }
     
     public func uploadDidFinish() {
+        guard !terminallyAborted else { return }
         // Before we can move on, we must check whether the user requested for App Core Settings
         // to be erased.
         if configuration.eraseAppSettings {
@@ -1233,6 +1277,7 @@ extension FirmwareUpgradeManager: ImageUploadDelegate {
 extension FirmwareUpgradeManager: SuitManagerDelegate {
     
     public func uploadRequestsResource(_ resource: FirmwareUpgradeResource) {
+        guard !terminallyAborted else { return }
         guard let suitDelegate = delegate as? SuitFirmwareUpgradeDelegate else {
             delegate?.upgradeDidFail(inState: .upload, with: SuitManagerError.suitDelegateRequiredForResource(resource))
             return

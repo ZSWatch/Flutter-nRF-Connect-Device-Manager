@@ -35,3 +35,10 @@ specified total length, and generic integer reads copy bytes into aligned
 storage. Host tests compile the actual SDK parser/read method and reject short
 or malformed input without a process trap. Image authenticity remains the
 watch bootloader's responsibility.
+
+FirmwareUpgradeManager.abort(with:) is a terminal app-owner teardown API, kept
+separate from upload-only cancel(). After the owner invalidates the transport,
+it removes the reset observer, stops upload controllers, fences later state/
+command transitions and releases the SDK's self-retention cycle even when the
+transport never delivers a cancelled callback. Normal DFU close/reconnect and
+user cancellation semantics remain the existing SDK paths.
