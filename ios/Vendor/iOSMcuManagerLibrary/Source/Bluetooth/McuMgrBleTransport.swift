@@ -103,6 +103,9 @@ public class McuMgrBleTransport: NSObject {
     /// to MTU Size so as to keep within each transmission packet's maximum (MTU) size limit. Otherwise, it's
     /// likely that CoreBluetooth will not send the Data.
     public var chunkSendDataToMtuSize: Bool = false
+    /// Preserve upstream retry behavior by default. Owners issuing non-idempotent
+    /// commands may disable replay when a fully admitted request has no response.
+    public var retryOnMissingResponse: Bool = true
     
     public internal(set) var state: PeripheralState = .disconnected {
         didSet {
@@ -488,8 +491,9 @@ extension McuMgrBleTransport: McuMgrTransport {
                 writeLock.open(McuMgrTransportError.peripheralNotReadyForWriteWithoutResponse)
                 return .failure(McuMgrTransportError.peripheralNotReadyForWriteWithoutResponse)
             }
-            writeLock.open(McuMgrTransportError.waitAndRetry)
-            return .failure(McuMgrTransportError.waitAndRetry)
+            let error: McuMgrTransportError = retryOnMissingResponse ? .waitAndRetry : .sendTimeout
+            writeLock.open(error)
+            return .failure(error)
         case .failure(let error):
             writeLock.open(error)
             return .failure(error)

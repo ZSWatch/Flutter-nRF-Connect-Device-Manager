@@ -23,3 +23,8 @@ when a packet was handed to CoreBluetooth before cancellation.
 
 Plugin registration is lazy: opening a Flutter engine registers channels without
 constructing a Bluetooth manager or prompting for Bluetooth authorization.
+
+The optional retryOnMissingResponse setting preserves the upstream default but
+lets the companion forbid replay after a fully admitted request loses its
+response. Reset and arbitrary shell commands therefore retain unknown outcomes
+instead of being executed again by the SDK transport.
