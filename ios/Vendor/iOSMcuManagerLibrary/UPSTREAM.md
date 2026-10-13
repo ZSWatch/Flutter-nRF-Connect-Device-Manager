@@ -28,3 +28,10 @@ The optional retryOnMissingResponse setting preserves the upstream default but
 lets the companion forbid replay after a fully admitted request loses its
 response. Reset and arbitrary shell commands therefore retain unknown outcomes
 instead of being executed again by the SDK transport.
+
+MCUboot parsing now checks header/table/entry bounds before reading selected
+files. Its existing parser and error types are retained. TLV tables end at their
+specified total length, and generic integer reads copy bytes into aligned
+storage. Host tests compile the actual SDK parser/read method and reject short
+or malformed input without a process trap. Image authenticity remains the
+watch bootloader's responsibility.

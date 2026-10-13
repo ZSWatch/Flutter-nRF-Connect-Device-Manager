@@ -21,11 +21,12 @@ public extension Data {
     func read<T: FixedWidthInteger>(offset: Int = 0) -> T {
         let length = MemoryLayout<T>.size
         
-        #if swift(>=5.0)
-        return subdata(in: offset ..< offset + length).withUnsafeBytes { $0.load(as: T.self) }
-        #else
-        return subdata(in: offset ..< offset + length).withUnsafeBytes { $0.pointee }
-        #endif
+        // Data's byte storage need not satisfy T's alignment.
+        var value: T = 0
+        _ = Swift.withUnsafeMutableBytes(of: &value) { destination in
+            copyBytes(to: destination, from: offset..<offset + length)
+        }
+        return value
     }
     
     func readBigEndian<R: FixedWidthInteger>(offset: Int = 0) -> R {

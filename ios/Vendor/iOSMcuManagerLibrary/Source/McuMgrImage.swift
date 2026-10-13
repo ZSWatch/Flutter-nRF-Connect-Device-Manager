@@ -22,8 +22,10 @@ public class McuMgrImage {
         let header = try McuMgrImageHeader(data: data)
         self.header = header
         let offset = Int(header.headerSize) + Int(header.imageSize)
+        guard header.headerSize >= 32, offset <= data.count else { throw McuMgrImageParseError.insufficientData }
         var tlv = try McuMgrImageTlv(data: data, imageHeader: header, at: offset)
         if let info = tlv.tlvInfo, info.isProtected {
+            guard Int(info.total) <= data.count - offset else { throw McuMgrImageParseError.insufficientData }
             tlv = try McuMgrImageTlv(data: data, imageHeader: header, at: offset + Int(info.total))
         }
         self.tlv = tlv
@@ -60,6 +62,7 @@ public class McuMgrImageHeader {
     // __pad2 UInt16
     
     public init(data: Data) throws {
+        guard data.count >= 32 else { throw McuMgrImageParseError.insufficientData }
         magic = data.read(offset: McuMgrImageHeader.MAGIC_OFFSET)
         loadAddr = data.read(offset: McuMgrImageHeader.LOAD_ADDR_OFFSET)
         headerSize = data.read(offset: McuMgrImageHeader.HEADER_SIZE_OFFSET)
@@ -133,15 +136,17 @@ public struct McuMgrImageTlv {
         if !imageHeader.isLegacy() {
             let tlvInfo = try McuMgrImageTlvInfo(data: data, offset: localOffset)
             localOffset += MemoryLayout<McuMgrImageTlvInfo>.size
-            end = localOffset + Int(tlvInfo.total)
+            guard tlvInfo.total >= 4, offset >= 0, Int(tlvInfo.total) <= data.count - offset else { throw McuMgrImageParseError.insufficientData }
+            end = offset + Int(tlvInfo.total)
             self.tlvInfo = tlvInfo
         }
         
         // Parse each tlv entry.
         trailerTlvEntries = [McuMgrImageTlvTrailerEntry]()
         var hashEntry: McuMgrImageTlvTrailerEntry?
-        while localOffset + McuMgrImageTlvTrailerEntry.MIN_SIZE < end {
+        while localOffset + McuMgrImageTlvTrailerEntry.MIN_SIZE <= end {
             let tlvEntry = try McuMgrImageTlvTrailerEntry(data: data, offset: localOffset)
+            guard tlvEntry.size <= end - localOffset else { throw McuMgrImageParseError.insufficientData }
             trailerTlvEntries.append(tlvEntry)
             
             if tlvEntry.type == McuMgrImageTlv.IMG_TLV_SHA384
@@ -172,6 +177,7 @@ public struct McuMgrImageTlvInfo {
     public let total: UInt16
     
     public init(data: Data, offset: Int) throws {
+        guard offset >= 0, offset <= data.count - 4 else { throw McuMgrImageParseError.insufficientData }
         magic = data.read(offset: offset)
         total = data.read(offset: offset + MemoryLayout<UInt16>.size)
         if magic != McuMgrImageTlv.IMG_TLV_UNPROTECTED_INFO_MAGIC
@@ -201,7 +207,7 @@ public class McuMgrImageTlvTrailerEntry {
     public let size: Int
     
     public init(data: Data, offset: Int) throws {
-        guard offset + McuMgrImageTlvTrailerEntry.MIN_SIZE < data.count else {
+        guard offset >= 0, offset <= data.count - McuMgrImageTlvTrailerEntry.MIN_SIZE else {
             throw McuMgrImageParseError.insufficientData
         }
         
@@ -213,7 +219,8 @@ public class McuMgrImageTlvTrailerEntry {
         offset += MemoryLayout<UInt8>.size
         length = data.read(offset: offset)
         offset += MemoryLayout<UInt16>.size
-        value = data[Int(offset)..<Int(offset + Int(length))]
+        guard Int(length) <= data.count - offset else { throw McuMgrImageParseError.insufficientData }
+        value = data[offset..<offset + Int(length)]
         size = McuMgrImageTlvTrailerEntry.MIN_SIZE + Int(length)
     }
 }
