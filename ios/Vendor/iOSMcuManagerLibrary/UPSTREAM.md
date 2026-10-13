@@ -1,0 +1,25 @@
+# Nordic iOS McuManager 1.10.1
+
+This directory retains the Apache-2.0-licensed CocoaPods source distribution
+of Nordic's tag 1.10.1 from
+https://github.com/NordicSemiconductor/IOS-nRF-Connect-Device-Manager.
+The original source hashes are in UPSTREAM_FILES.json and the license is retained.
+SwiftCBOR 0.4.7 and ZIPFoundation 0.9.19 dependencies remain unchanged.
+
+Local fixes preserve SDK protocol/DFU/file implementations:
+- The already-connected discovery path filters by the service UUID; a new
+  central waits for poweredOn before retrieving a peripheral.
+- invalidate() permanently fences an app-owned session and cancels queued work;
+  reconnectable close() keeps its existing DFU semantics.
+- The reorder buffer serializes admission, cancellation and readiness. It
+  respects canSendWriteWithoutResponse instead of forcing writes after 15 ms.
+
+The companion owns one SDK operation at a time and calls invalidate() on Stop,
+Forget or session loss. Pending mutating-operation outcomes remain uncertain
+when a packet was handed to CoreBluetooth before cancellation.
+
+- McuMgrExecResponse exposes Zephyr shell `ret` as a signed returnCode, distinct
+  from transport/protocol `rc`. Nonzero command exits remain visible to callers.
+
+Plugin registration is lazy: opening a Flutter engine registers channels without
+constructing a Bluetooth manager or prompting for Bluetooth authorization.
