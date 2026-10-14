@@ -39,6 +39,7 @@ extension McuMgrBleTransport: CBCentralManagerDelegate {
             central.cancelPeripheralConnection(peripheral)
             return
         }
+        connectedLocally = true
         log(msg: "Peripheral connected", atLevel: .info)
         state = .initializing
         previousUpdateNotificationSequenceNumber = nil
@@ -53,6 +54,7 @@ extension McuMgrBleTransport: CBCentralManagerDelegate {
         guard self.identifier == peripheral.identifier else {
             return
         }
+        connectedLocally = false
         log(msg: "Peripheral disconnected", atLevel: .info)
         peripheral.delegate = nil
         smpCharacteristic = nil
@@ -65,6 +67,7 @@ extension McuMgrBleTransport: CBCentralManagerDelegate {
         guard self.identifier == peripheral.identifier else {
             return
         }
+        connectedLocally = false
         log(msg: "Peripheral failed to connect", atLevel: .warning)
         connectionLock.open(McuMgrTransportError.connectionFailed)
     }

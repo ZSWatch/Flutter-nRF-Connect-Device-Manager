@@ -41,6 +41,9 @@ public class McuMgrBleTransport: NSObject {
     /// The CBCentralManager instance from which the peripheral was obtained.
     /// This is used to connect and cancel connection.
     internal let centralManager: CBCentralManager
+    // A retrieved peripheral can be connected by another central/system client.
+    // Its global state is not proof that this SDK central owns a connection.
+    internal var connectedLocally = false
     internal let lifetime = McuMgrBleLifetime()
     /// The queue used to buffer requests when another one is in progress.
     private let operationQueue: OperationQueue
@@ -361,16 +364,17 @@ extension McuMgrBleTransport: McuMgrTransport {
             
             switch targetPeripheral.state {
             case .connected:
-                // If the peripheral was already connected, but the SMP
-                // characteristic has not been set, start by performing service
-                // discovery. Once the characteristic's notification is enabled,
-                // the semaphore will be signaled and the request can be sent.
-                log(msg: "Peripheral already connected", atLevel: .info)
-                log(msg: "Discovering services...", atLevel: .verbose)
                 state = .connecting
                 guard lifetime.perform({
-                    targetPeripheral.delegate = self
-                    targetPeripheral.discoverServices([configuration.serviceUUID])
+                    if connectedLocally {
+                        targetPeripheral.delegate = self
+                        targetPeripheral.discoverServices([configuration.serviceUUID])
+                    } else {
+                        // Register this central before the companion releases
+                        // its connection or the application enters background.
+                        // didConnect performs discovery and notification setup.
+                        centralManager.connect(targetPeripheral)
+                    }
                 }) else { return .failure(McuMgrTransportError.disconnected) }
             case .disconnected:
                 // If the peripheral is disconnected, begin the setup process by
@@ -385,7 +389,11 @@ extension McuMgrBleTransport: McuMgrTransport {
             case .connecting:
                 log(msg: "Device is connecting...", atLevel: .info)
                 state = .connecting
-                // Do nothing. It will switch to .connected or .disconnected.
+                // This may be another client's pending connection. Register
+                // ours too so that our didConnect callback performs setup.
+                guard lifetime.perform({ centralManager.connect(targetPeripheral) }) else {
+                    return .failure(McuMgrTransportError.disconnected)
+                }
             case .disconnecting:
                 log(msg: "Device is disconnecting...", atLevel: .info)
                 // If the peripheral's connection state is transitioning, wait and retry
