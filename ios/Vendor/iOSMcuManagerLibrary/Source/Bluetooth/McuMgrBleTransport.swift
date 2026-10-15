@@ -81,7 +81,9 @@ public class McuMgrBleTransport: NSObject {
         }
     }
     /// The log delegate will receive transport logs.
-    public weak var logDelegate: McuMgrLogDelegate?
+    public weak var logDelegate: McuMgrLogDelegate? {
+        didSet { robWriteBuffer.setLogDelegate(logDelegate) }
+    }
     
     /// Set to values larger than 1 to enable Parallel Writes
     ///

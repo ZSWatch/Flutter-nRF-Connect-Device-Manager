@@ -48,6 +48,10 @@ internal final class McuMgrBleROBWriteBuffer {
     }
     
     // MARK: API
+
+    internal func setLogDelegate(_ delegate: McuMgrLogDelegate?) {
+        lock.sync { log = delegate }
+    }
     
     internal func isInFlight(_ sequenceNumber: McuSequenceNumber) -> Bool {
         lock.sync { [unowned self] in
