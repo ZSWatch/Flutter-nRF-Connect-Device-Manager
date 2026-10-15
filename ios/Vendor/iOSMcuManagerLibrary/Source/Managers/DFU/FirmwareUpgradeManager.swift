@@ -164,6 +164,16 @@ public class FirmwareUpgradeManager: FirmwareUpgradeController, ConnectionObserv
         cyclicReferenceHolder = nil
     }
     
+    /// Pause only the upload stage. Lifecycle callers must not park bootloader
+    /// discovery or interrupt a confirm/reset command that has already started.
+    @discardableResult public func pauseUploadIfActive() -> Bool {
+        objc_sync_enter(self)
+        defer { objc_sync_exit(self) }
+        guard !terminallyAborted, state == .upload else { return false }
+        pause()
+        return true
+    }
+
     public func pause() {
         objc_sync_enter(self)
         if state.isInProgress() && !paused {

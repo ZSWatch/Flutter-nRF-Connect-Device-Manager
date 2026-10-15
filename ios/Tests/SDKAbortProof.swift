@@ -27,10 +27,12 @@ private final class HeldTransport: McuMgrTransport {
     let images = [ImageManager.Image(image: 0, hash: Data(repeating: 1, count: 32), data: Data(repeating: 0, count: 64))]
     manager!.start(images: images)
     precondition(manager!.isInProgress() && transport.sends == 1)
+    precondition(!manager!.pauseUploadIfActive() && !manager!.isPaused(), "Lifecycle pause parked parameter discovery")
     manager!.cancel() // Upstream cancel intentionally does nothing before upload.
     precondition(manager!.isInProgress())
     transport.close() // Production owner invalidates its real transport first.
     manager!.abort(with: McuMgrTransportError.disconnected)
+    precondition(!manager!.pauseUploadIfActive(), "Terminal manager accepted lifecycle pause")
     precondition(!manager!.isInProgress())
     precondition(transport.removedObservers == 1)
     transport.callbacks.first!() // Late parameter error must not start bootloader IO.
