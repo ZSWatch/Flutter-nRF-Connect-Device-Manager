@@ -7,10 +7,26 @@ private final class HeldTransport: McuMgrTransport {
   var mtu: Int! = 244
   var sends = 0
   var callbacks: [() -> Void] = []
+  var replies: [(Data) -> Void] = []
+  var packets: [Data] = []
   var removedObservers = 0
   func getScheme() -> McuMgrScheme { .ble }
   func send<T: McuMgrResponse>(data: Data, timeout: Int, callback: @escaping McuMgrCallback<T>) {
-    sends += 1; callbacks.append { callback(nil, McuMgrTransportError.disconnected) }
+    sends += 1; packets.append(data)
+    callbacks.append { callback(nil, McuMgrTransportError.disconnected) }
+    replies.append { data in
+      let response: T = try! McuMgrResponse.buildResponse(scheme: .ble, data: data)
+      callback(response, nil)
+    }
+  }
+  private enum FileCommand: UInt8 { case file = 0 }
+  func replyOffset(_ index: Int, _ offset: UInt64) {
+    let header = try! McuMgrHeader(data: packets[index])
+    let packet = McuManager.buildPacket(scheme: .ble, version: .SMPv2, op: .writeResponse,
+      flags: 0, group: header.groupId, sequenceNumber: header.sequenceNumber,
+      commandId: FileCommand.file, payload: ["off": .unsignedInt(offset)])
+    replies[index](packet)
+    RunLoop.main.run(until: Date().addingTimeInterval(0.1))
   }
   func connect(_ callback: @escaping ConnectionCallback) { callback(.deferred) }
   func close() {}
@@ -57,15 +73,22 @@ private final class HeldFileDelegate: FileUploadDelegate {
     let fileTransport = HeldTransport()
     let fileDelegate = HeldFileDelegate()
     let files = FileSystemManager(transport: fileTransport)
-    precondition(files.upload(name: "/owned", data: Data(repeating: 1, count: 1024), delegate: fileDelegate))
+    precondition(files.upload(name: "/owned", data: Data(repeating: 1, count: 4096),
+      using: FirmwareUpgradeConfiguration(pipelineDepth: 3), delegate: fileDelegate))
     precondition(!files.pauseUploadIfActive(), "File lifecycle pause parked parameter discovery")
     fileTransport.callbacks[0]() // Unsupported parameters fall back to ordinary upload.
     RunLoop.main.run(until: Date().addingTimeInterval(0.1))
     precondition(fileTransport.sends == 2)
+    fileTransport.replyOffset(1, 200)
+    precondition(fileTransport.sends == 5, "Initial ACK did not fill the file pipeline")
     precondition(files.pauseUploadIfActive(), "Active high-level file upload did not pause")
     precondition(!files.pauseUploadIfActive(), "Repeated pause changed transfer state")
+    for index in 2...4 { fileTransport.replyOffset(index, 0) }
+    precondition(fileTransport.sends == 5, "Paused ACK emitted another request")
     files.continueTransfer()
-    precondition(fileTransport.sends == 3, "Paused file upload did not continue")
+    precondition(fileTransport.sends == 6, "Paused file upload did not continue")
+    fileTransport.replyOffset(5, 200)
+    precondition(fileTransport.sends == 9, "Paused ACKs left phantom pipeline requests blocking resume")
     files.cancelTransfer(error: McuMgrTransportError.disconnected)
     precondition(!files.pauseUploadIfActive() && fileDelegate.failures == 1)
     let waitingTransport = HeldTransport()
@@ -84,6 +107,20 @@ private final class HeldFileDelegate: FileUploadDelegate {
     precondition(waitingTransport.sends == 2)
     waitingFiles = nil
     precondition(waitingReference == nil, "Cancelled file upload retained itself")
+    var pipeline = McuMgrUploadPipeline(adopting: FirmwareUpgradeConfiguration(pipelineDepth: 3), over: HeldTransport())
+    var offsets: [UInt64] = []
+    let send: (UInt64) -> UInt64 = { offsets.append($0); return $0 + 100 }
+    pipeline.pipelinedSend(ofSize: 1000, using: send)
+    precondition(offsets == [0, 100, 200])
+    for _ in 0..<2 {
+      pipeline.receivedData(with: 0)
+      pipeline.pipelinedSend(ofSize: 1000, using: send)
+      precondition(offsets.count == 3, "Offset rewind kept refilling invalid requests")
+    }
+    pipeline.receivedData(with: 0)
+    pipeline.pipelinedSend(ofSize: 1000, using: send)
+    precondition(offsets == [0, 100, 200, 0, 100, 200], "Pipeline did not restart from server offset")
+    print("PASS: SDK offset rewind drains old requests before restarting")
     print("PASS: SDK file upload-only pause/continue and late parameter cancellation")
     print("PASS: actual SDK terminal abort fences late requests and releases self-retention without a transport callback")
   }

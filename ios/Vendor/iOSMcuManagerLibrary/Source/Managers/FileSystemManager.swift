@@ -522,8 +522,9 @@ public class FileSystemManager: McuManager {
                 self.uploadDelegate = nil
                 // Release cyclic reference.
                 self.cyclicReferenceHolder = nil
-            } else {
-                // Send the next packet of data.
+            } else if self.transferState == .uploading {
+                // Paused ACKs drain outstanding requests without inventing
+                // pipeline entries for packets sendNext will not send.
                 self.uploadPipeline.pipelinedSend(ofSize: fileData.count) { [unowned self] offset in
                     let packetOverhead = self.calculatePacketOverhead(for: fileName, data: fileData, offset: offset)
                     let payloadLength = self.maxDataPacketLengthFor(data: fileData, at: offset, with: packetOverhead, and: self.uploadConfiguration)

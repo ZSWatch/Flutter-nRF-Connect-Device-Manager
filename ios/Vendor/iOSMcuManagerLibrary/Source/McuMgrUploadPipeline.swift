@@ -17,6 +17,7 @@ public struct McuMgrUploadPipeline {
     private let depth: Int
     private var lastReceivedOffset: UInt64
     private var expectedReturnOffsets: [UInt64] = []
+    private var recoveringOffset = false
     
     // MARK: init
     
@@ -34,6 +35,10 @@ public struct McuMgrUploadPipeline {
     // MARK: pipelinedSend(ofSize:using:)
     
     mutating public func pipelinedSend(ofSize imageSize: Int, using sendFrom: @escaping (_ offset: UInt64) -> UInt64) {
+        // A rewind invalidates all queued offsets. Do not replace an old
+        // request until its response has drained, or the queue never empties.
+        guard !recoveringOffset || expectedReturnOffsets.isEmpty else { return }
+        recoveringOffset = false
         for _ in 0..<(depth - expectedReturnOffsets.count) {
             let offset = expectedReturnOffsets.last ?? lastReceivedOffset
             guard offset < imageSize else {
@@ -52,6 +57,7 @@ public struct McuMgrUploadPipeline {
             lastReceivedOffset = max(lastReceivedOffset, UInt64(offset))
         } else {
             // Offset Mismatch.
+            recoveringOffset = true
             lastReceivedOffset = offset
             
             if !expectedReturnOffsets.isEmpty {
