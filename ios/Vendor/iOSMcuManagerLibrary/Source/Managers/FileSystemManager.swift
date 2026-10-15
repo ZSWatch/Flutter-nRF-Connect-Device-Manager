@@ -291,6 +291,7 @@ public class FileSystemManager: McuManager {
     
     /// State of the file upload.
     private var transferState: UploadState = .none
+    private var parameterRequestToken = UUID()
     /// Current file byte offset to send from.
     private var offset: UInt64 = 0
     
@@ -356,7 +357,7 @@ public class FileSystemManager: McuManager {
                 // Release cyclic reference.
                 cyclicReferenceHolder = nil
             } else {
-                if transferState == .paused {
+                if transferState == .paused || transferState == .mcuMgrParameters {
                     log(msg: "Transfer cancelled", atLevel: .application)
                     resetTransfer()
                     uploadDelegate?.uploadDidCancel()
@@ -378,6 +379,17 @@ public class FileSystemManager: McuManager {
     
     /// Pauses the current transfer. If there is no transfer in progress, nothing
     /// happens.
+    /// Lifecycle pause for an admitted high-level upload only. Parameter
+    /// discovery and terminal/low-level requests cannot be resumed this way.
+    @discardableResult
+    public func pauseUploadIfActive() -> Bool {
+        objc_sync_enter(self)
+        defer { objc_sync_exit(self) }
+        guard transferState == .uploading, fileData != nil, uploadDelegate != nil else { return false }
+        transferState = .paused
+        return true
+    }
+
     public func pauseTransfer() {
         objc_sync_enter(self)
         if transferState == .none {
@@ -414,8 +426,8 @@ public class FileSystemManager: McuManager {
     // MARK: mcuMgrParameters Callback
     
     private lazy var mcuManagerParametersCallback: McuMgrCallback<McuMgrParametersResponse> = { [weak self] response, error in
-        guard let self else { return }
-        
+        guard let self, self.transferState == .mcuMgrParameters else { return }
+
         guard error == nil, let response, response.rc.isSupported() else {
             self.log(msg: "Mcu Manager parameters not supported.", atLevel: .warning)
             self.finishedMcuMgrParametersRequest() // Proceed to upload.
@@ -618,7 +630,12 @@ private extension FileSystemManager {
         storedMcuMgrParametersResponse = nil
         transferState = .mcuMgrParameters
         defaultManager = DefaultManager(transport: transport)
-        defaultManager.params(callback: mcuManagerParametersCallback)
+        let token = UUID()
+        parameterRequestToken = token
+        defaultManager.params { [weak self] response, error in
+            guard let self, self.parameterRequestToken == token else { return }
+            self.mcuManagerParametersCallback(response, error)
+        }
         objc_sync_exit(self)
     }
     
@@ -687,8 +704,9 @@ private extension FileSystemManager {
     
     private func resetTransfer() {
         objc_sync_enter(self)
-        // Reset upload state.
+        // Reset upload state and fence parameter callbacks from this attempt.
         transferState = .none
+        parameterRequestToken = UUID()
         
         // Deallocate and nil file data pointers.
         fileData = nil

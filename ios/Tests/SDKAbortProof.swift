@@ -18,6 +18,15 @@ private final class HeldTransport: McuMgrTransport {
   func removeObserver(_ observer: ConnectionObserver) { removedObservers += 1 }
 }
 
+private final class HeldFileDelegate: FileUploadDelegate {
+  var failures = 0
+  var cancellations = 0
+  func uploadProgressDidChange(bytesSent: Int, fileSize: Int, timestamp: Date) {}
+  func uploadDidFail(with error: Error) { failures += 1 }
+  func uploadDidCancel() { cancellations += 1 }
+  func uploadDidFinish() {}
+}
+
 @main struct SDKAbortProof {
   static func main() {
     precondition(Thread.isMainThread)
@@ -45,6 +54,37 @@ private final class HeldTransport: McuMgrTransport {
     neverStarted.abort(with: McuMgrError.returnCode(.unsupported))
     neverStarted.start(images: images)
     precondition(transport.sends == 1)
+    let fileTransport = HeldTransport()
+    let fileDelegate = HeldFileDelegate()
+    let files = FileSystemManager(transport: fileTransport)
+    precondition(files.upload(name: "/owned", data: Data(repeating: 1, count: 1024), delegate: fileDelegate))
+    precondition(!files.pauseUploadIfActive(), "File lifecycle pause parked parameter discovery")
+    fileTransport.callbacks[0]() // Unsupported parameters fall back to ordinary upload.
+    RunLoop.main.run(until: Date().addingTimeInterval(0.1))
+    precondition(fileTransport.sends == 2)
+    precondition(files.pauseUploadIfActive(), "Active high-level file upload did not pause")
+    precondition(!files.pauseUploadIfActive(), "Repeated pause changed transfer state")
+    files.continueTransfer()
+    precondition(fileTransport.sends == 3, "Paused file upload did not continue")
+    files.cancelTransfer(error: McuMgrTransportError.disconnected)
+    precondition(!files.pauseUploadIfActive() && fileDelegate.failures == 1)
+    let waitingTransport = HeldTransport()
+    var waitingFiles: FileSystemManager? = FileSystemManager(transport: waitingTransport)
+    weak var waitingReference = waitingFiles
+    precondition(waitingFiles!.upload(name: "/owned", data: Data(repeating: 2, count: 64), delegate: fileDelegate))
+    waitingFiles!.cancelTransfer()
+    precondition(fileDelegate.cancellations == 1)
+    precondition(waitingFiles!.upload(name: "/owned-new", data: Data(repeating: 3, count: 64), delegate: fileDelegate))
+    waitingTransport.callbacks[0]() // Old parameters must not start the new transfer.
+    RunLoop.main.run(until: Date().addingTimeInterval(0.1))
+    precondition(waitingTransport.sends == 2 && !waitingFiles!.pauseUploadIfActive())
+    waitingFiles!.cancelTransfer(error: McuMgrTransportError.disconnected)
+    waitingTransport.callbacks[1]() // Must not restart with discarded file data.
+    RunLoop.main.run(until: Date().addingTimeInterval(0.1))
+    precondition(waitingTransport.sends == 2)
+    waitingFiles = nil
+    precondition(waitingReference == nil, "Cancelled file upload retained itself")
+    print("PASS: SDK file upload-only pause/continue and late parameter cancellation")
     print("PASS: actual SDK terminal abort fences late requests and releases self-retention without a transport callback")
   }
 }
