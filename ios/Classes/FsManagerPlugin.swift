@@ -22,18 +22,18 @@ class FsManagerPlugin : FsManagerApi {
     }
     
     private func getManager(_ remoteId: String) throws -> FileSystemManager {
-        var mgr = managers[remoteId]
+        if let mgr = managers[remoteId] {
+            return mgr
+        }
         guard let uuid = UUID(uuidString: remoteId) else {
             throw PigeonError(code: "TODO Code", message: "remoteId not a valid UUID.", details: nil)
         }
-        guard let pheripheral = centralManager().retrievePeripherals(withIdentifiers: [uuid]).first else {
+        guard let transport = mcuTransport(centralManager(), uuid) else {
             throw PigeonError(code: "TODO Code", message: "Was not able to retrieve pheripheral for UUID \(uuid)", details: nil)
         }
-        if mgr == nil {
-            mgr = FileSystemManager(transport: McuMgrBleTransport(pheripheral))
-            managers[remoteId] = mgr
-        }
-        return mgr!
+        let mgr = FileSystemManager(transport: transport)
+        managers[remoteId] = mgr
+        return mgr
     }
     
     /// Start downloading a file.
