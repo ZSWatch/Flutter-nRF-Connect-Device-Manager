@@ -4,10 +4,10 @@ import CoreBluetooth
 
 class ShellManagerPlugin: ShellManagerApi {
     private var managers: [String: ShellManager] = [:]
-    private let centralManager: CBCentralManager
+    private let centralManager: () -> CBCentralManager
 
     init(
-        centralManager: CBCentralManager,
+        centralManager: @escaping () -> CBCentralManager,
         messenger: FlutterBinaryMessenger
     ) {
         self.centralManager = centralManager
@@ -21,7 +21,7 @@ class ShellManagerPlugin: ShellManagerApi {
         guard let uuid = UUID(uuidString: remoteId) else {
             throw PigeonError(code: "INVALID_ID", message: "remoteId not a valid UUID.", details: nil)
         }
-        guard let peripheral = centralManager.retrievePeripherals(withIdentifiers: [uuid]).first else {
+        guard let peripheral = centralManager().retrievePeripherals(withIdentifiers: [uuid]).first else {
             throw PigeonError(code: "DEVICE_NOT_FOUND", message: "Was not able to retrieve peripheral for UUID \(uuid)", details: nil)
         }
         let mgr = ShellManager(transport: McuMgrBleTransport(peripheral))
@@ -37,7 +37,7 @@ class ShellManagerPlugin: ShellManagerApi {
                     completion(Result.failure(error))
                 } else {
                     let output = response?.output ?? ""
-                    let rc = response.map { Int64($0.rc.rawValue) } ?? -1
+                    let rc = response.map { $0.returnCode ?? Int64($0.rc.rawValue) } ?? -1
                     let shellResponse = ShellResponse(
                         output: output,
                         returnCode: rc
