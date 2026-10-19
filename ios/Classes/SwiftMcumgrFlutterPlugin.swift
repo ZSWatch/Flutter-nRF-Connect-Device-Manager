@@ -9,7 +9,8 @@ public class SwiftMcumgrFlutterPlugin: NSObject, FlutterPlugin {
     static let namespace = "mcumgr_flutter"
     
     private var updateManagers: [String : UpdateManager] = [:]
-    private var centralManager: CBCentralManager? = nil
+    private let centralRegistry: DeferredMcuCentral
+    private var centralManager: CBCentralManager? { centralRegistry.existing }
     
     private let updateStateEventChannel: FlutterEventChannel
     private let updateProgressEventChannel: FlutterEventChannel
@@ -31,8 +32,9 @@ public class SwiftMcumgrFlutterPlugin: NSObject, FlutterPlugin {
         logEventChannel: FlutterEventChannel,
         binaryMessenger: FlutterBinaryMessenger
     ) {
-        let centralManager = CBCentralManager()
-        self.centralManager = centralManager
+        let registry = DeferredMcuCentral()
+        self.centralRegistry = registry
+        let centralManager = { registry.manager }
         self.updateStateEventChannel = updateStateEventChannel
         self.updateProgressEventChannel = updateProgressEventChannel
         self.logEventChannel = logEventChannel
@@ -51,7 +53,7 @@ public class SwiftMcumgrFlutterPlugin: NSObject, FlutterPlugin {
 
         super.init()
         
-        centralManager.delegate = self
+        registry.delegate = self
         updateStateEventChannel.setStreamHandler(updateStateStreamHandler)
         updateProgressEventChannel.setStreamHandler(updateProgressStreamHandler)
         logEventChannel.setStreamHandler(logStreamHandler)
@@ -128,7 +130,7 @@ public class SwiftMcumgrFlutterPlugin: NSObject, FlutterPlugin {
             throw FlutterError(code: ErrorCode.wrongArguments.rawValue, message: "Can not create UUID from provided arguments", details: call.debugDetails)
         }
         
-        if let centralManager {
+        if let centralManager, centralManager.state == .poweredOn {
             guard let peripheral = centralManager.retrievePeripherals(withIdentifiers: [uuid]).first else {
                 throw FlutterError(code: ErrorCode.wrongArguments.rawValue, message: "Can't retrieve peripheral with provided UUID", details: call.debugDetails)
             }
@@ -136,10 +138,11 @@ public class SwiftMcumgrFlutterPlugin: NSObject, FlutterPlugin {
             try handleUpdateManager(for: peripheral, call: call)
             result(nil)
         } else {
-            centralManager = CBCentralManager()
-            centralManager?.delegate = self
-            
             initManagerResultQueue.enqueue((call: call, result: result))
+            let manager = centralRegistry.manager
+            if manager.state != .unknown && manager.state != .resetting {
+                centralManagerDidUpdateState(manager)
+            }
         }
     }
     
@@ -322,5 +325,23 @@ extension SwiftMcumgrFlutterPlugin: CBCentralManagerDelegate {
             let error = FlutterError(code: ErrorCode.wrongArguments.rawValue, message: "Can not retreive peripheral to update", details: call.debugDetails)
             result(error)
         }
+    }
+}
+
+
+/// Plugin registration installs channels without accessing Bluetooth. The first
+/// explicit manager operation creates the lookup central; transports keep the
+/// Nordic SDK's existing ownership and implementation.
+private final class DeferredMcuCentral: NSObject, CBCentralManagerDelegate {
+    private(set) var existing: CBCentralManager?
+    weak var delegate: CBCentralManagerDelegate?
+    var manager: CBCentralManager {
+        if let existing { return existing }
+        let created = CBCentralManager(delegate: self, queue: nil)
+        existing = created
+        return created
+    }
+    func centralManagerDidUpdateState(_ central: CBCentralManager) {
+        delegate?.centralManagerDidUpdateState(central)
     }
 }

@@ -6,12 +6,12 @@ class FsManagerPlugin : FsManagerApi {
     private var managers: [String : FileSystemManager] = [:]
     private var downloadDelegates: [String : FileDownloadDelegate] = [:]
     private var uploadDelegates: [String : FileUploadDelegate] = [:]
-    private let centralManager: CBCentralManager
+    private let centralManager: () -> CBCentralManager
     private let downloadStreamHandler = DownloadStreamHandler()
     private let uploadStreamHandler = UploadStreamHandler()
 
     init(
-        centralManager: CBCentralManager,
+        centralManager: @escaping () -> CBCentralManager,
         messenger: FlutterBinaryMessenger
     ) {
         self.centralManager = centralManager
@@ -26,7 +26,7 @@ class FsManagerPlugin : FsManagerApi {
         guard let uuid = UUID(uuidString: remoteId) else {
             throw PigeonError(code: "TODO Code", message: "remoteId not a valid UUID.", details: nil)
         }
-        guard let pheripheral = centralManager.retrievePeripherals(withIdentifiers: [uuid]).first else {
+        guard let pheripheral = centralManager().retrievePeripherals(withIdentifiers: [uuid]).first else {
             throw PigeonError(code: "TODO Code", message: "Was not able to retrieve pheripheral for UUID \(uuid)", details: nil)
         }
         if mgr == nil {
