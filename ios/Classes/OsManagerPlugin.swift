@@ -21,10 +21,10 @@ class OsManagerPlugin : OsManagerApi {
         guard let uuid = UUID(uuidString: remoteId) else {
             throw PigeonError(code: "INVALID_ID", message: "remoteId not a valid UUID.", details: nil)
         }
-        guard let peripheral = centralManager().retrievePeripherals(withIdentifiers: [uuid]).first else {
+        guard let transport = mcuTransport(centralManager(), uuid) else {
             throw PigeonError(code: "DEVICE_NOT_FOUND", message: "Was not able to retrieve peripheral for UUID \(uuid)", details: nil)
         }
-        let mgr = DefaultManager(transport: McuMgrBleTransport(peripheral))
+        let mgr = DefaultManager(transport: transport)
         managers[remoteId] = mgr
         return mgr
     }

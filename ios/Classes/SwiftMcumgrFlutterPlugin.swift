@@ -329,6 +329,14 @@ extension SwiftMcumgrFlutterPlugin: CBCentralManagerDelegate {
 }
 
 
+/// Transport for a known device. Retrieval is only valid once the lookup central
+/// is poweredOn; until then the SDK's identifier transport waits for its own
+/// central and fails sends when Bluetooth is unusable.
+func mcuTransport(_ central: CBCentralManager, _ identifier: UUID) -> McuMgrBleTransport? {
+    guard central.state == .poweredOn else { return McuMgrBleTransport(identifier) }
+    return central.retrievePeripherals(withIdentifiers: [identifier]).first.map { McuMgrBleTransport($0) }
+}
+
 /// Plugin registration installs channels without accessing Bluetooth. The first
 /// explicit manager operation creates the lookup central; transports keep the
 /// Nordic SDK's existing ownership and implementation.
